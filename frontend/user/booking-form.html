@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Booking · Elite Blue</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ----- THEME VARIABLES (default / fallback) ----- */
+        body {
+            --bg-gradient-start: #0b1a2e;
+            --bg-gradient-end: #132b3f;
+            --card-bg: rgba(12, 27, 44, 0.8);
+            --border-glow: #3f9eff40;
+            --accent-primary: #3f9eff;
+            --accent-secondary: #1a6fd0;
+            --text-light: #e4f0ff;
+            --text-muted: #b3d9ff;
+            --badge-bg: #1e334d;
+            --badge-border: #3f9eff;
+            --input-bg: #1e334d;
+            --input-border: #2f5480;
+            --glow-color: #3f9eff;
+            --warning-color: #ffb86b;
+            --btn-bg: #0050b3;
+            --btn-hover: #1a6fd0;
+            --confirm-heading: linear-gradient(130deg, #b3dcff, #6eb7ff);
+            --wait-message-bg: #0f2640;
+            --wait-message-border: #2f5480;
+            --wait-message-text: #b3d9ff;
+            transition: all 0.2s ease;
+        }
+
+       /* EMERGENCY theme (red/blue neon) */
+body.emergency-theme {
+    --bg-gradient-start: #050010;
+    --bg-gradient-end: #ff0000;
+    --card-bg: rgba(25, 0, 40, 0.95);
+    --border-glow: #ff004c80;
+    --accent-primary: #ff003c;
+    --accent-secondary: #001aff;
+    --text-light: #ffffff;
+    --text-muted: #ff8fb3;
+    --badge-bg: #220015;
+    --badge-border: #ff003c;
+    --input-bg: #140014;
+    --input-border: #ff004c;
+    --glow-color: #ff003c;
+    --warning-color: #ff2a2a;
+    --btn-bg: #ff003c;
+    --btn-hover: #ff3366;
+    --confirm-heading: linear-gradient(130deg, #ff003c, #001aff);
+    --wait-message-bg: #1a0012;
+    --wait-message-border: #ff003c;
+    --wait-message-text: #ff9ab3;
+}
+
+        /* NORMAL theme (yellow/gold) */
+        body.normal-theme {
+            --bg-gradient-start: #2e2a0b;
+            --bg-gradient-end: #3f3513;
+            --card-bg: rgba(44, 40, 12, 0.85);
+            --border-glow: #ffd96640;
+            --accent-primary: #ffb347;
+            --accent-secondary: #ffaa00;
+            --text-light: #fff4e0;
+            --text-muted: #ffe4b3;
+            --badge-bg: #4d3f1a;
+            --badge-border: #ffb347;
+            --input-bg: #332e1e;
+            --input-border: #b28f2f;
+            --glow-color: #ffb347;
+            --warning-color: #ffdd9a;
+            --btn-bg: #cc8500;
+            --btn-hover: #ffaa1a;
+            --confirm-heading: linear-gradient(130deg, #ffe4b3, #ffcc66);
+            --wait-message-bg: #332911;
+            --wait-message-border: #b28f2f;
+            --wait-message-text: #ffe4b3;
+        }
+
+        body {
+            background: linear-gradient(145deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: var(--text-light);
+        }
+
+        .form-card {
+            max-width: 700px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-glow);
+            border-radius: 3rem;
+            padding: 2.5rem 2rem;
+            box-shadow: 0 30px 50px -20px #000, 0 0 0 1px var(--accent-primary) inset;
+            transition: all 0.3s ease;
+        }
+
+        /* Mode indicator */
+        .mode-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3rem;
+            padding: 0.8rem 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--accent-primary);
+        }
+        .mode-badge {
+            font-weight: 700;
+            padding: 0.4rem 1.2rem;
+            border-radius: 2rem;
+            background: var(--badge-bg);
+            color: var(--text-muted);
+            border: 1px solid var(--badge-border);
+            box-shadow: 0 0 10px var(--glow-color);
+        }
+        .mode-badge.emergency {
+            background: #4d1a1a;
+            color: #ffb3b3;
+            border-color: #ff6666;
+            box-shadow: 0 0 15px #ff000080;
+        }
+        .mode-note {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            background: var(--confirm-heading);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            border-left: 5px solid var(--accent-primary);
+            padding-left: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: var(--input-bg);
+            border: 2px solid var(--input-border);
+            border-radius: 2rem;
+            color: white;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+
+        .map-container {
+            height: 250px;
+            border-radius: 2rem;
+            overflow: hidden;
+            border: 2px solid var(--input-border);
+            margin: 1rem 0;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+        }
+
+        .location-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+
+        .location-actions button {
+            background: var(--btn-bg);
+            border: none;
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+            border: 1px solid var(--accent-primary);
+        }
+
+        .location-actions button:hover {
+            background: var(--btn-hover);
+            box-shadow: 0 0 20px var(--glow-color);
+        }
+
+        .row {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .row .form-group {
+            flex: 1 1 200px;
+        }
+
+        .otp-group {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .otp-group input {
+            flex: 1;
+        }
+
+        .otp-group button {
+            background: var(--btn-bg);
+            border: none;
+            color: white;
+            padding: 0 2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid var(--accent-primary);
+        }
+
+        .btn-confirm {
+            width: 100%;
+            background: linear-gradient(125deg, var(--btn-bg), color-mix(in srgb, var(--btn-bg) 70%, black));
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 1.3rem;
+            padding: 1.2rem;
+            border-radius: 4rem;
+            cursor: pointer;
+            margin-top: 2rem;
+            box-shadow: 0 10px 18px -6px #001a33, 0 0 0 1px var(--accent-primary) inset;
+            transition: 0.2s;
+        }
+
+        .btn-confirm:hover {
+            background: linear-gradient(125deg, var(--btn-hover), color-mix(in srgb, var(--btn-hover) 70%, black));
+            transform: scale(1.02);
+            box-shadow: 0 15px 25px -6px #000f2e, 0 0 0 2px var(--accent-primary) inset;
+        }
+
+        .back-link {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .back-link a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-weight: 500;
+            border-bottom: 1px dashed var(--accent-primary);
+        }
+
+        .availability-hint {
+            font-size: 0.9rem;
+            color: var(--warning-color);
+            margin-top: 0.3rem;
+        }
+
+        select option:disabled {
+            background: #4d4d4d;
+            color: #aaa;
+        }
+
+        /* Confirmation panel */
+        .confirmation-panel {
+            text-align: center;
+            padding: 1.5rem 1rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .confirmation-panel h3 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            background: var(--confirm-heading);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .confirmation-panel .subtext {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .details-box {
+            background: var(--input-bg);
+            border-radius: 2.5rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 10px 25px #00000050;
+        }
+
+        .details-box p {
+            font-size: 1.2rem;
+            margin: 0.8rem 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .details-box strong {
+            color: var(--text-muted);
+            font-weight: 600;
+            min-width: 90px;
+            text-align: right;
+        }
+
+        .details-box span {
+            color: white;
+            font-weight: 400;
+            background: color-mix(in srgb, var(--input-bg) 70%, black);
+            padding: 0.3rem 1rem;
+            border-radius: 3rem;
+            border: 1px solid var(--input-border);
+        }
+
+        /* SIDE MESSAGE – MODE-BASED WAIT ALERT */
+        .wait-side-message {
+            margin: 1.5rem 0 1rem;
+            padding: 1rem 1.5rem;
+            border-radius: 3rem;
+            background: var(--wait-message-bg);
+            border-left: 8px solid var(--accent-primary);
+            border-right: 1px solid var(--accent-primary);
+            border-top: 1px solid var(--accent-primary);
+            border-bottom: 1px solid var(--accent-primary);
+            color: var(--wait-message-text);
+            font-size: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 0 20px var(--glow-color);
+            text-align: left;
+            animation: slideIn 0.4s ease;
+        }
+
+        .wait-side-message i {
+            font-size: 2rem;
+            color: var(--accent-primary);
+            filter: drop-shadow(0 0 5px currentColor);
+        }
+
+        .wait-side-message .message-text {
+            flex: 1;
+        }
+
+        .wait-side-message .eta-highlight {
+            background: var(--accent-primary);
+            color: black;
+            font-weight: 800;
+            padding: 0.2rem 1rem;
+            border-radius: 3rem;
+            margin-left: 0.5rem;
+            white-space: nowrap;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .countdown-message {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            background: var(--wait-message-bg);
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            border-radius: 4rem;
+            margin-top: 1rem;
+            border: 1px solid var(--accent-primary);
+        }
+
+        #countdown {
+            font-weight: 700;
+            color: white;
+            background: var(--accent-primary);
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            margin: 0 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <!-- MODE INDICATOR (inherits from dashboard) -->
+        <div class="mode-indicator" id="modeIndicator">
+            <span class="mode-badge" id="modeBadge">Normal Mode</span>
+            <span class="mode-note">(from dashboard)</span>
+        </div>
+
+        <!-- MAIN FORM SECTION -->
+        <div id="formSection">
+            <h2>📋 Complete your booking</h2>
+            <form id="bookingForm">
+                <input type="hidden" id="workerId" name="workerId">
+
+                <div class="row">
+                    <div class="form-group">
+                        <label>📅 Preferred date</label>
+                        <input type="date" id="date" required min="">
+                    </div>
+                    <div class="form-group">
+                        <label>⏰ Time slot</label>
+                        <select id="timeSlot" required>
+                            <option value="">Select time</option>
+                            <option value="09:00-11:00">09:00 – 11:00</option>
+                            <option value="11:00-13:00">11:00 – 13:00</option>
+                            <option value="13:00-15:00">13:00 – 15:00</option>
+                            <option value="15:00-17:00">15:00 – 17:00</option>
+                            <option value="17:00-19:00">17:00 – 19:00</option>
+                        </select>
+                        <div id="availabilityHint" class="availability-hint"></div>
+                    </div>
+                </div>
+
+                <!-- EMERGENCY MODE IS INHERITED FROM DASHBOARD (NO CHECKBOX) -->
+
+                <div class="form-group">
+                    <label>📍 Service location (click map to set)</label>
+                    <div class="map-container" id="map"></div>
+                    <div class="location-actions">
+                        <button type="button" id="getCurrentLocation">📍 Use my current location</button>
+                    </div>
+                    <input type="text" id="locationAddress" placeholder="Selected address will appear here" readonly style="margin-top: 1rem;">
+                </div>
+
+                <div class="form-group">
+                    <label>🔑 OTP verification</label>
+                    <div class="otp-group">
+                        <input type="text" id="otp" placeholder="Enter OTP" required>
+                        <button type="button" id="sendOtpBtn">Send OTP</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-confirm">✅ Confirm & send request</button>
+            </form>
+            <div class="back-link" id="backLink">
+                <a href="dashboard.html">← Back to dashboard</a>
+            </div>
+        </div>
+
+        <!-- CONFIRMATION PANEL (hidden initially) with MODE-BASED SIDE MESSAGE -->
+        <div id="confirmationSection" class="confirmation-panel" style="display: none;">
+            <h3>✅ Request sent!</h3>
+            <div class="subtext">Your booking is waiting for worker response</div>
+            
+            <!-- THEMED SIDE MESSAGE – appears after booking, shows wait time based on mode -->
+            <div id="waitSideMessage" class="wait-side-message">
+                <i class="fas fa-clock" id="waitIcon"></i>
+                <span class="message-text" id="waitMessageText">⏳ Normal booking: Worker will arrive in 30-45 minutes.</span>
+                <span class="eta-highlight" id="waitEta">30-45 min</span>
+            </div>
+
+            <div class="details-box" id="confirmDetails">
+                <p><strong>Worker:</strong> <span id="confirmWorkerName">--</span></p>
+                <p><strong>Date:</strong> <span id="confirmDate">--</span></p>
+                <p><strong>Time slot:</strong> <span id="confirmTimeSlot">--</span></p>
+                <p><strong>Location:</strong> <span id="confirmLocation">--</span></p>
+                <p><strong>Mode:</strong> <span id="confirmMode">--</span></p>
+            </div>
+            <div class="countdown-message">
+                Redirecting to dashboard in <span id="countdown">5</span> seconds...
+            </div>
+            <div style="margin-top: 2rem;">
+                <a href="dashboard.html" style="color: var(--text-muted); text-decoration: none; border-bottom: 1px dashed var(--accent-primary);">Go now</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <script>
+        (function() {
+            const API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (function() {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api`;
+            })();
+            const userToken = localStorage.getItem('userToken');
+            const authHeaders = () => ({ 'Authorization': `Bearer ${userToken}`, 'Content-Type': 'application/json' });
+
+            // Get workerId from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const workerId = urlParams.get('workerId');
+            if (!workerId) {
+                alert('No worker selected. Redirecting...');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+            document.getElementById('workerId').value = workerId;
+
+            // Fetched once on load; used for the confirmation panel and slot checks below.
+            let workerCache = null;
+            fetch(`${API_BASE}/workers/${workerId}`, { headers: authHeaders() })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => { workerCache = data; })
+                .catch(() => { workerCache = null; });
+
+            // Restrict booking date to today only
+            const dateInput = document.getElementById('date');
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.min = today;
+            dateInput.max = today;
+            if (!dateInput.value) {
+                dateInput.value = today;
+            }
+
+            // ---------- MODE from localStorage ----------
+            const emergencyModeFlag = localStorage.getItem('emergencyMode') === 'true';
+            const modeBadge = document.getElementById('modeBadge');
+            const bodyEl = document.body;
+
+            // Apply theme class to body
+            if (emergencyModeFlag) {
+                modeBadge.textContent = 'Emergency Mode';
+                modeBadge.classList.add('emergency');
+                bodyEl.classList.add('emergency-theme');
+                bodyEl.classList.remove('normal-theme');
+            } else {
+                modeBadge.textContent = 'Normal Mode';
+                modeBadge.classList.remove('emergency');
+                bodyEl.classList.add('normal-theme');
+                bodyEl.classList.remove('emergency-theme');
+            }
+
+            // OTP simulation
+            let generatedOtp = null;
+            document.getElementById('sendOtpBtn').addEventListener('click', function() {
+                generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+                alert(`OTP sent: ${generatedOtp} (mock)`);
+            });
+
+            // Map setup (Leaflet)
+            const map = L.map('map').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
+
+            let marker = null;
+            let selectedLatLng = null;
+
+            map.on('click', function(e) {
+                if (marker) map.removeLayer(marker);
+                marker = L.marker(e.latlng).addTo(map);
+                selectedLatLng = e.latlng;
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${e.latlng.lat}&lon=${e.latlng.lng}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        document.getElementById('locationAddress').value = data.display_name || 'Selected location';
+                    })
+                    .catch(() => {
+                        document.getElementById('locationAddress').value = `${e.latlng.lat}, ${e.latlng.lng}`;
+                    });
+            });
+
+            document.getElementById('getCurrentLocation').addEventListener('click', function() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const lat = position.coords.latitude;
+                            const lng = position.coords.longitude;
+                            map.setView([lat, lng], 15);
+                            if (marker) map.removeLayer(marker);
+                            marker = L.marker([lat, lng]).addTo(map);
+                            selectedLatLng = { lat, lng };
+                            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`)
+                                .then(res => res.json())
+                                .then(data => {
+                                    document.getElementById('locationAddress').value = data.display_name || 'Current location';
+                                })
+                                .catch(() => {
+                                    document.getElementById('locationAddress').value = `${lat}, ${lng}`;
+                                });
+                        },
+                        (error) => {
+                            alert('Unable to retrieve location. Please click on map.');
+                        }
+                    );
+                } else {
+                    alert('Geolocation not supported. Please click on map.');
+                }
+            });
+
+            // Helper to get worker name
+            function getWorkerName(workerId) {
+                if (workerCache && (workerCache.id == workerId || workerCache._id == workerId)) {
+                    return workerCache.name || workerCache.email || `Worker #${workerId}`;
+                }
+                return `Worker #${workerId}`;
+            }
+
+            // Time slot availability
+            const timeSlotSelect = document.getElementById('timeSlot');
+            const availabilityHint = document.getElementById('availabilityHint');
+
+            async function updateTimeSlotAvailability() {
+                const selectedDate = dateInput.value;
+                if (!selectedDate) {
+                    Array.from(timeSlotSelect.options).forEach(opt => opt.disabled = false);
+                    availabilityHint.innerText = '';
+                    return;
+                }
+
+                const workerIdVal = document.getElementById('workerId').value;
+                let bookedSlots = [];
+                try {
+                    const res = await fetch(`${API_BASE}/workers/${workerIdVal}/availability?date=${encodeURIComponent(selectedDate)}`, { headers: authHeaders() });
+                    if (res.ok) {
+                        const data = await res.json();
+                        bookedSlots = data.bookedSlots || [];
+                    }
+                } catch (e) {
+                    // If the check fails, fall back to letting the server-side
+                    // clash check at submit time be the source of truth.
+                }
+
+                Array.from(timeSlotSelect.options).forEach(opt => {
+                    if (opt.value && bookedSlots.includes(opt.value)) {
+                        opt.disabled = true;
+                    } else {
+                        opt.disabled = false;
+                    }
+                });
+
+                if (bookedSlots.length > 0) {
+                    availabilityHint.innerText = `⚠️ Already booked: ${bookedSlots.join(', ')}`;
+                } else {
+                    availabilityHint.innerText = '';
+                }
+            }
+
+            dateInput.addEventListener('change', updateTimeSlotAvailability);
+            updateTimeSlotAvailability();
+
+            // Form submission
+            document.getElementById('bookingForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const otpInput = document.getElementById('otp').value;
+                if (otpInput !== generatedOtp) {
+                    alert('Invalid OTP. Please request OTP and try again.');
+                    return;
+                }
+
+                if (!selectedLatLng) {
+                    alert('Please select a location on the map.');
+                    return;
+                }
+
+                const date = document.getElementById('date').value;
+                const timeSlot = document.getElementById('timeSlot').value;
+                const address = document.getElementById('locationAddress').value;
+                const workerIdVal = document.getElementById('workerId').value;
+                const emergency = emergencyModeFlag; // use mode from dashboard
+                const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+                if (!currentUser || !userToken) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                let newBooking;
+                try {
+                    const res = await fetch(`${API_BASE}/bookings`, {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        body: JSON.stringify({
+                            workerId: workerIdVal,
+                            date,
+                            timeSlot,
+                            location: { lat: selectedLatLng.lat, lng: selectedLatLng.lng, address },
+                            emergency
+                        })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        alert(data.message || 'This time slot has just been booked. Please choose another.');
+                        updateTimeSlotAvailability();
+                        if (submitBtn) submitBtn.disabled = false;
+                        return;
+                    }
+                    newBooking = data;
+                } catch (err) {
+                    alert('Could not reach the server. Please try again.');
+                    if (submitBtn) submitBtn.disabled = false;
+                    return;
+                }
+
+                // Prepare confirmation panel with theme & side message
+                const workerName = getWorkerName(workerIdVal);
+                document.getElementById('confirmWorkerName').innerText = workerName;
+                document.getElementById('confirmDate').innerText = date.split('-').reverse().join('/');
+                document.getElementById('confirmTimeSlot').innerText = timeSlot;
+                document.getElementById('confirmLocation').innerText = address || 'Location selected';
+                document.getElementById('confirmMode').innerText = emergency ? 'Emergency (₹600)' : 'Normal (₹200)';
+
+                // Update wait side message based on mode
+                const waitIcon = document.getElementById('waitIcon');
+                const waitMessageText = document.getElementById('waitMessageText');
+                const waitEta = document.getElementById('waitEta');
+
+                if (emergency) {
+                    waitIcon.className = 'fas fa-exclamation-triangle';
+                    waitMessageText.innerHTML = '🚨 <strong>Emergency priority</strong> – Worker dispatched immediately. Estimated arrival:';
+                    waitEta.innerText = '10-15 min';
+                } else {
+                    waitIcon.className = 'fas fa-clock';
+                    waitMessageText.innerHTML = '⏳ <strong>Normal booking</strong> – Worker will be assigned shortly. Estimated arrival:';
+                    waitEta.innerText = '30-45 min';
+                }
+
+                // Show confirmation section
+                document.getElementById('formSection').style.display = 'none';
+                document.getElementById('confirmationSection').style.display = 'block';
+
+                // Countdown redirect
+                let secondsLeft = 5;
+                const countdownSpan = document.getElementById('countdown');
+                const timer = setInterval(() => {
+                    secondsLeft -= 1;
+                    countdownSpan.innerText = secondsLeft;
+                    if (secondsLeft <= 0) {
+                        clearInterval(timer);
+                        window.location.href = 'dashboard.html';
+                    }
+                }, 1000);
+            });
+        })();
+    </script>
+</body>
+</html>

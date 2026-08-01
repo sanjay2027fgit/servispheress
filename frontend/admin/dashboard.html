@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>⚜️ SERVISPHERE ELITE | Glass Dominion · Emergency Surcharge</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, sans-serif;
+        }
+
+        /* Animated gradient background + floating orbs */
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0a0c12, #030507);
+            position: relative;
+            overflow-x: hidden;
+            padding: 28px 32px;
+        }
+
+        /* animated glass background layer */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, rgba(0,0,0,0) 60%);
+            animation: slowDrift 26s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes slowDrift {
+            0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+            100% { transform: translate(10%, 8%) rotate(5deg); opacity: 0.8; }
+        }
+
+        /* floating gold dust particles */
+        .gold-dust {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(2px 2px at 20px 30px, #fbbf24, rgba(0,0,0,0)),
+                              radial-gradient(3px 3px at 80px 120px, #ffd966, rgba(0,0,0,0));
+            background-size: 200px 200px, 300px 300px;
+            background-repeat: repeat;
+            opacity: 0.2;
+            animation: floatDust 40s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatDust {
+            0% { background-position: 0 0; }
+            100% { background-position: 400px 400px; }
+        }
+
+        /* premium glass effect */
+        .glass-premium {
+            background: rgba(12, 15, 22, 0.55);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.45);
+            border-radius: 40px;
+            box-shadow: 0 25px 45px -12px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.2) inset, 0 0 28px rgba(212,175,55,0.2);
+            transition: all 0.3s ease;
+        }
+
+        .glass-premium:hover {
+            border-color: #fbbf24;
+            box-shadow: 0 30px 50px -15px #fbbf2440, 0 0 0 1px #fbbf24 inset;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 36px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #f9e4b7, #fbbf24, #e6b422);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(251,191,36,0.5);
+            letter-spacing: -0.5px;
+        }
+
+        .badge-root {
+            background: linear-gradient(145deg, #b8860b, #8b691b);
+            padding: 8px 24px;
+            border-radius: 60px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #0a0702;
+            box-shadow: 0 0 15px #ffbf00;
+            border: 1px solid #ffe6a3;
+        }
+
+        .logout-btn {
+            background: rgba(212, 175, 55, 0.12);
+            border: 1.5px solid #fbbf24;
+            color: #fdebb3;
+            padding: 12px 32px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        .logout-btn:hover {
+            background: #fbbf24;
+            color: #0b0b0b;
+            box-shadow: 0 0 30px #fbbf24;
+            border-color: #fff0c0;
+            transform: translateY(-2px);
+        }
+
+        /* stats row */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 28px;
+            margin-bottom: 48px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .stat-card {
+            background: rgba(18, 22, 30, 0.65);
+            backdrop-filter: blur(12px);
+            border-radius: 36px;
+            padding: 28px 20px;
+            border: 1px solid rgba(212, 175, 55, 0.5);
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-6px);
+            border-color: #fbbf24;
+            box-shadow: 0 20px 35px -8px #fbbf2440;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #e6bc7e;
+            margin-bottom: 12px;
+        }
+
+        .stat-value {
+            font-size: 3.4rem;
+            font-weight: 800;
+            background: linear-gradient(145deg, #fff0cf, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 18px rgba(251,191,36,0.6);
+        }
+
+        /* dashboard grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 32px;
+            margin-top: 20px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .data-card {
+            background: rgba(10, 13, 20, 0.7);
+            backdrop-filter: blur(16px);
+            border-radius: 42px;
+            padding: 24px 26px;
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            transition: all 0.2s;
+        }
+
+        .data-card h3 {
+            font-size: 1.8rem;
+            font-weight: 500;
+            color: #f3dfb2;
+            border-left: 6px solid #fbbf24;
+            padding-left: 22px;
+            margin-bottom: 24px;
+            text-shadow: 0 0 6px #b8860b;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 28px;
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #f0e5d2;
+        }
+
+        th {
+            background: rgba(212, 175, 55, 0.2);
+            color: #ffdfa5;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 16px 12px;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid #fbbf24;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            background: rgba(20, 24, 32, 0.6);
+        }
+
+        tr:hover td {
+            background: rgba(212, 175, 55, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            background: #2a251a;
+            color: #fbbf24;
+            border: 1px solid #fbbf24;
+            box-shadow: 0 0 6px #fbbf24;
+        }
+
+        .badge-emergency {
+            background: #4d1a1a;
+            color: #ffb3b3;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 12px #ff4d4d;
+        }
+
+        .badge-approved, .badge-paid_by_user {
+            background: #1a3627;
+            color: #b3ffcf;
+            border-color: #2ecc71;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 32px;
+            color: #b9a77d;
+            font-style: italic;
+        }
+
+        .chat-btn {
+            background: linear-gradient(145deg, #b8860b, #8b691b);
+            border: none;
+            padding: 6px 20px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #0c0a05;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ffd966;
+        }
+
+        .chat-btn:hover {
+            background: #fbbf24;
+            box-shadow: 0 0 15px #fbbf24;
+            transform: scale(1.02);
+        }
+
+        /* glass modal for chat */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.75);
+            backdrop-filter: blur(10px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: rgba(20, 12, 18, 0.92);
+            backdrop-filter: blur(20px);
+            border: 2px solid #fbbf24;
+            border-radius: 2.5rem;
+            padding: 2rem;
+            max-width: 620px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 70px #ffb34780, 0 0 0 2px rgba(255, 200, 100, 0.3) inset;
+            color: #fff0e0;
+        }
+        .modal-content h2 {
+            font-size: 1.9rem;
+            border-bottom: 2px solid #fbbf24;
+            padding-bottom: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .chat-messages {
+            max-height: 320px;
+            overflow-y: auto;
+            background: #0b080e70;
+            border-radius: 1.8rem;
+            padding: 1rem;
+            margin-bottom: 1.2rem;
+        }
+        .chat-message {
+            padding: 0.8rem;
+            margin: 0.7rem 0;
+            border-radius: 1.2rem;
+            background: #1f1a1a80;
+            border-left: 4px solid #ff7b2c;
+        }
+        .chat-message.admin {
+            border-left-color: #fbbf24;
+            background: #2a241d80;
+        }
+        .reply-box {
+            display: flex;
+            gap: 0.7rem;
+        }
+        .reply-box textarea {
+            flex: 1;
+            background: #1c1616;
+            border: 1px solid #fbbf24;
+            border-radius: 2rem;
+            padding: 0.8rem 1.2rem;
+            color: white;
+            resize: none;
+        }
+        .reply-box button {
+            background: #fbbf24;
+            border: none;
+            padding: 0 1.8rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .close-modal {
+            float: right;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #fbbf24;
+            line-height: 1;
+        }
+        .footer-note {
+            margin-top: 50px;
+            text-align: right;
+            color: #b58d3d;
+            font-size: 0.8rem;
+            border-top: 1px dashed #fbbf2440;
+            padding-top: 20px;
+            position: relative;
+            z-index: 3;
+        }
+        .glow-text {
+            text-shadow: 0 0 8px #fbbf24;
+        }
+    </style>
+</head>
+<body>
+<div class="gold-dust"></div>
+
+<div class="header glass-premium">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h1>⚜️ SERVISPHERE · ELITE OBSERVER</h1>
+        <span class="badge-root">ROOT ACCESS · GOLD TIER</span>
+        <button class="logout-btn" id="syncBtn" style="border-color:#2ecc71; color:#2ecc71;">☁️ SYNC TO CLOUD</button>
+    </div>
+    <button class="logout-btn" id="logoutBtn">⟁ SIGN OUT</button>
+</div>
+
+<!-- EARNINGS with correct normal/emergency logic (normal total ₹200, emergency total ₹600) -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">TOTAL REVENUE (PLATFORM)</div>
+        <div class="stat-value" id="totalRevenue">₹0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">PENDING PAYOUTS (USER PAID)</div>
+        <div class="stat-value" id="pendingPayouts">₹0</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">RELEASED TO WORKERS</div>
+        <div class="stat-value" id="completedPayouts">₹0</div>
+    </div>
+</div>
+
+<!-- DATA GRID -->
+<div class="dashboard-grid">
+    <div class="data-card">
+        <h3>👥 USERS</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Email</th></tr></thead><tbody id="usersBody"></tbody></table></div>
+    </div>
+    <div class="data-card">
+        <h3>🛠️ WORKERS</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Exp.</th></tr></thead><tbody id="workersBody"></tbody></table></div>
+    </div>
+    <div class="data-card">
+        <h3>📋 BOOKINGS</h3>
+        <div class="table-wrapper"><table><thead><tr><th>ID</th><th>User</th><th>Worker</th><th>Status</th><th>Date</th><th>Location</th><th>Emergency</th><th>Cancel Reason</th></tr></thead><tbody id="bookingsBody"></tbody></table></div>
+    </div>
+    <div class="data-card">
+        <h3>💰 PAYMENTS (Normal ₹200 / Emergency ₹600)</h3>
+        <div class="table-wrapper"><table><thead><tr><th>ID</th><th>Booking</th><th>Worker</th><th>Base (₹)</th><th>Surcharge</th><th>Total (₹)</th><th>Status</th></tr></thead><tbody id="paymentsBody"></tbody></table></div>
+    </div>
+    <div class="data-card">
+        <h3>⭐ FEEDBACK</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Booking</th><th>User</th><th>Rating</th><th>Comment</th></tr></thead><tbody id="feedbackBody"></tbody></table></div>
+    </div>
+    <div class="data-card">
+        <h3>💬 EMERGENCY CHAT (24/7)</h3>
+        <div class="table-wrapper"><table><thead><tr><th>Booking ID</th><th>User</th><th>Worker</th><th>Action</th></tr></thead><tbody id="chatBookingsBody"></tbody></table></div>
+    </div>
+</div>
+
+<div class="footer-note">
+    ✦ pricing rules: Normal = ₹200 total | Emergency = ₹600 total ✦ <span id="timestamp"></span>
+</div>
+
+<!-- MODAL for emergency chat -->
+<div id="chatModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" id="closeModalBtn">&times;</span>
+        <h2 id="modalBookingTitle">Emergency Support</h2>
+        <div id="chatMessages" class="chat-messages"></div>
+        <div class="reply-box">
+            <textarea id="replyMessage" rows="2" placeholder="Type your message..."></textarea>
+            <button id="sendReplyBtn">⟳ SEND</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // Admin authentication
+        if (!localStorage.getItem('currentAdmin')) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // Real JWT obtained at login (see admin/login.html). Needed now because
+        // /api/admin/* routes require admin/special_admin auth.
+        function adminAuthHeaders() {
+            const token = localStorage.getItem('adminToken');
+            return token ? { 'Authorization': `Bearer ${token}` } : {};
+        }
+
+        // Helper functions
+
+        const escapeHtml = str => String(str || '').replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+
+        // Get worker name by ID
+        function getWorkerName(workerId, workers) {
+            if (!workerId) return '—';
+            const w = workers.find(w => w.id == workerId || w.id === workerId);
+            return w ? (w.name || w.email) : workerId;
+        }
+
+        // Format location nicely
+        function formatLocation(loc) {
+            if (!loc) return '—';
+            if (typeof loc === 'string') return escapeHtml(loc);
+            if (loc.address) return escapeHtml(loc.address);
+            if (loc.lat && loc.lng) return `${loc.lat}, ${loc.lng}`;
+            return '—';
+        }
+
+        // Check emergency status from booking
+        function isEmergencyBooking(bookingId, bookings) {
+            const booking = bookings.find(b => b.id == bookingId);
+            return booking ? (booking.emergency === true) : false;
+        }
+
+        // --------------------------------------------------------------
+        // PAYOUT LOGIC: Normal total = ₹200, Emergency total = ₹600 (Base ₹200 + surcharge ₹400)
+        // The stored payment.amount is ignored for totals, we recompute based on emergency flag.
+        // --------------------------------------------------------------
+        function getPaymentBreakdown(bookingId, bookings) {
+            const emergency = isEmergencyBooking(bookingId, bookings);
+            if (emergency) {
+                return { base: 200, surcharge: 400, total: 600 };
+            } else {
+                return { base: 200, surcharge: 0, total: 200 };
+            }
+        }
+
+        async function fetchDashboardData() {
+            try {
+                const res = await fetch('/api/admin/dashboard', { headers: adminAuthHeaders() });
+                if (res.status === 401 || res.status === 403) {
+                    localStorage.removeItem('currentAdmin');
+                    localStorage.removeItem('adminToken');
+                    window.location.href = 'login.html';
+                    return { users: [], workers: [], bookings: [], payments: [], feedbacks: [], chats: [] };
+                }
+                if (!res.ok) throw new Error('Failed to fetch dashboard data');
+                return await res.json();
+            } catch (err) {
+                console.error(err);
+                return { users: [], workers: [], bookings: [], payments: [], feedbacks: [], chats: [] };
+            }
+        }
+
+        // refresh all UI and metrics
+        async function refreshDashboard() {
+            const { users, workers, bookings, payments, feedbacks, chats } = await fetchDashboardData();
+
+            // --- compute earnings totals using emergency flag logic ---
+            let totalRevenue = 0;
+            let pendingPayouts = 0;
+            let completedPayouts = 0;
+
+            payments.forEach(payment => {
+                const breakdown = getPaymentBreakdown(payment.bookingId, bookings);
+                const effectiveTotal = breakdown.total;
+                totalRevenue += effectiveTotal;
+                if (payment.status === 'paid_by_user') pendingPayouts += effectiveTotal;
+                if (payment.status === 'approved') completedPayouts += effectiveTotal;
+            });
+
+            document.getElementById('totalRevenue').innerHTML = `₹${totalRevenue}`;
+            document.getElementById('pendingPayouts').innerHTML = `₹${pendingPayouts}`;
+            document.getElementById('completedPayouts').innerHTML = `₹${completedPayouts}`;
+
+            // ---- USERS ----
+            const usersBody = document.getElementById('usersBody');
+            if (users.length === 0) usersBody.innerHTML = '<tr><td class="empty-msg">No users</td></tr>';
+            else usersBody.innerHTML = users.map(u => `<tr><td>${escapeHtml(u.email)}</td></tr>`).join('');
+
+            // ---- WORKERS ----
+            const workersBody = document.getElementById('workersBody');
+            if (workers.length === 0) workersBody.innerHTML = '<tr><td colspan="4" class="empty-msg">No workers</td></tr>';
+            else workersBody.innerHTML = workers.map(w => `<tr><td>${escapeHtml(w.email)}</td><td>${escapeHtml(w.name || '—')}</td><td>${escapeHtml(w.role)}</td><td>${escapeHtml(w.experience)} yrs</td></tr>`).join('');
+
+            // ---- BOOKINGS (with emergency badge) ----
+            const bookingsBody = document.getElementById('bookingsBody');
+            if (bookings.length === 0) bookingsBody.innerHTML = '<tr><td colspan="8" class="empty-msg">No bookings</td></tr>';
+            else {
+                bookingsBody.innerHTML = bookings.map(b => {
+                    const workerName = getWorkerName(b.workerId, workers);
+                    const locStr = formatLocation(b.location);
+                    const emergencyBadge = b.emergency ? '<span class="badge badge-emergency">🚨 EMERGENCY</span>' : '—';
+                    const cancelReason = b.cancelReason ? escapeHtml(b.cancelReason) : (b.status === 'cancelled_by_user' ? 'Cancelled by user' : '—');
+                    return `<tr>
+                        <td>${b.id}</td>
+                        <td>${escapeHtml(b.userId)}</td>
+                        <td>${escapeHtml(workerName)}</td>
+                        <td><span class="badge">${escapeHtml(b.status)}</span></td>
+                        <td>${b.createdAt ? b.createdAt.slice(0,10) : '—'}</td>
+                        <td>${locStr}</td>
+                        <td>${emergencyBadge}</td>
+                        <td>${cancelReason}</td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // ---- PAYMENTS: show base=200, surcharge(400 if emergency) + total ----
+            const paymentsBody = document.getElementById('paymentsBody');
+            if (payments.length === 0) paymentsBody.innerHTML = '<tr><td colspan="7" class="empty-msg">No payment records</td></tr>';
+            else {
+                paymentsBody.innerHTML = payments.map(p => {
+                    const workerName = getWorkerName(p.workerId, workers);
+                    const emergency = isEmergencyBooking(p.bookingId, bookings);
+                    const breakdown = getPaymentBreakdown(p.bookingId, bookings);
+                    const surchargeDisplay = emergency ? `+₹${breakdown.surcharge}` : '—';
+                    const emergencyBadgeIcon = emergency ? '<span class="badge badge-emergency" style="margin-left:6px;">🚨</span>' : '';
+                    return `<tr>
+                        <td>${p.id}</td>
+                        <td>${p.bookingId} ${emergencyBadgeIcon}</td>
+                        <td>${escapeHtml(workerName)}</td>
+                        <td>₹${breakdown.base}</td>
+                        <td>${surchargeDisplay}</td>
+                        <td><strong class="glow-text">₹${breakdown.total}</strong></td>
+                        <td><span class="badge">${escapeHtml(p.status)}</span></td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // ---- FEEDBACK ----
+            const feedbackBody = document.getElementById('feedbackBody');
+            if (feedbacks.length === 0) feedbackBody.innerHTML = '<tr><td colspan="4" class="empty-msg">No feedback yet</td></tr>';
+            else {
+                feedbackBody.innerHTML = feedbacks.map(f => `<tr>
+                    <td>${f.bookingId}</td>
+                    <td>${escapeHtml(f.userId)}</td>
+                    <td>${f.rating}/5</td>
+                    <td>“${escapeHtml(f.comment).substring(0, 60)}${f.comment && f.comment.length > 60 ? '…' : ''}”</td>
+                </tr>`).join('');
+            }
+
+            // ---- EMERGENCY CHAT BOOKINGS (only emergency bookings) ----
+            const emergencyBookings = bookings.filter(b => b.emergency === true);
+            const chatBookingsBody = document.getElementById('chatBookingsBody');
+            if (emergencyBookings.length === 0) chatBookingsBody.innerHTML = '<tr><td colspan="4" class="empty-msg">No emergency bookings</td></tr>';
+            else {
+                chatBookingsBody.innerHTML = emergencyBookings.map(b => {
+                    const workerName = getWorkerName(b.workerId, workers);
+                    return `<tr>
+                        <td>${b.id}</td>
+                        <td>${escapeHtml(b.userId)}</td>
+                        <td>${escapeHtml(workerName)}</td>
+                        <td><button class="chat-btn" data-bookingid="${b.id}" data-user="${escapeHtml(b.userId)}">💬 CHAT</button></td>
+                    </tr>`;
+                }).join('');
+            }
+
+            // reattach chat event listeners after refresh
+            attachChatEvents();
+        }
+
+        // ----------------------- EMERGENCY CHAT MODAL (glassy) -----------------------
+        let currentChatBookingId = null;
+        let chatPollInterval = null;
+        const modal = document.getElementById('chatModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalTitle = document.getElementById('modalBookingTitle');
+        const chatMessagesDiv = document.getElementById('chatMessages');
+        const replyInput = document.getElementById('replyMessage');
+        const sendBtn = document.getElementById('sendReplyBtn');
+
+        function attachChatEvents() {
+            document.querySelectorAll('.chat-btn').forEach(btn => {
+                btn.removeEventListener('click', chatClickHandler);
+                btn.addEventListener('click', chatClickHandler);
+            });
+        }
+
+        function chatClickHandler(e) {
+            const bookingId = e.currentTarget.dataset.bookingid;
+            const userName = e.currentTarget.dataset.user;
+            currentChatBookingId = bookingId;
+            modalTitle.innerText = `💬 EMERGENCY CHAT · Booking #${bookingId}`;
+            loadChatMessages(bookingId);
+            modal.classList.add('active');
+            if (chatPollInterval) clearInterval(chatPollInterval);
+            chatPollInterval = setInterval(() => {
+                if (currentChatBookingId) loadChatMessages(currentChatBookingId);
+            }, 4000);
+        }
+
+        async function loadChatMessages(bookingId) {
+            if (!bookingId) return;
+            const { chats } = await fetchDashboardData();
+            const chat = chats.find(c => c.bookingId == bookingId);
+            if (!chat || !chat.messages || chat.messages.length === 0) {
+                chatMessagesDiv.innerHTML = '<p style="padding:1rem; text-align:center;">✨ No messages yet — start the conversation.</p>';
+                return;
+            }
+            let html = '';
+            chat.messages.forEach(msg => {
+                const senderClass = msg.sender === 'admin' ? 'admin' : '';
+                html += `<div class="chat-message ${senderClass}">
+                            <small>${msg.sender === 'admin' ? '🛡️ ADMIN' : '👤 USER'} · ${new Date(msg.timestamp).toLocaleString()}</small>
+                            <p>${escapeHtml(msg.message)}</p>
+                         </div>`;
+            });
+            chatMessagesDiv.innerHTML = html;
+            chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+        }
+
+        async function sendAdminMessage() {
+            if (!currentChatBookingId) return;
+            const msg = replyInput.value.trim();
+            if (!msg) return;
+
+            try {
+                const res = await fetch('/api/admin/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...adminAuthHeaders() },
+                    body: JSON.stringify({ bookingId: currentChatBookingId, message: msg })
+                });
+                
+                if (res.ok) {
+                    replyInput.value = '';
+                    await loadChatMessages(currentChatBookingId);
+                }
+            } catch (err) {
+                console.error('Failed to send message:', err);
+            }
+        }
+
+        sendBtn.addEventListener('click', sendAdminMessage);
+        closeModalBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+            if (chatPollInterval) clearInterval(chatPollInterval);
+            chatPollInterval = null;
+            currentChatBookingId = null;
+        });
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                if (chatPollInterval) clearInterval(chatPollInterval);
+                chatPollInterval = null;
+                currentChatBookingId = null;
+            }
+        });
+
+        // initial load + live timestamp & auto refresh
+        refreshDashboard();
+        document.getElementById('timestamp').innerText = new Date().toLocaleString();
+        setInterval(() => {
+            refreshDashboard();
+            document.getElementById('timestamp').innerText = new Date().toLocaleString();
+        }, 9000);
+
+        // NOTE: This button used to push localStorage data into MongoDB via
+        // /api/admin/seed (a destructive deleteMany+reinsert). Now that every
+        // page writes directly to MongoDB and nothing populates localStorage
+        // anymore, that old behavior would silently wipe real data and reseed
+        // with empty arrays. Repurposed as a safe manual refresh instead.
+        document.getElementById('syncBtn').addEventListener('click', async () => {
+            await refreshDashboard();
+            alert('✅ Dashboard refreshed from MongoDB.');
+        });
+
+        // logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('currentAdmin');
+            localStorage.removeItem('adminToken');
+            localStorage.removeItem('adminRefreshToken');
+            window.location.href = '../index.html';
+        });
+    })();
+</script>
+</body>
+</html>

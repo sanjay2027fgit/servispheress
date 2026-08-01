@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Gold Neon · Job Tracker</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+    </script>
+
+    <style>
+        /* ── RESET & BODY ── */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Inter', sans-serif;
+            background: radial-gradient(circle at 30% 10%, #1a1500, #000000 80%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            color: #f5e7c8;
+        }
+
+        /* ── GOLD NEON CARD ── */
+        .card {
+            max-width: 560px;
+            width: 100%;
+            background: rgba(10, 8, 3, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 215, 0, 0.45);
+            border-radius: 2.5rem;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 20px 40px -10px #000,
+                0 0 0 1px rgba(255, 215, 0, 0.25) inset,
+                0 0 45px rgba(255, 215, 0, 0.3);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .card:hover {
+            border-color: rgba(255, 215, 0, 0.8);
+            box-shadow: 0 30px 50px -8px #000,
+                0 0 0 1px rgba(255, 223, 0, 0.6) inset,
+                0 0 55px #ffd90070;
+        }
+
+        .card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border-radius: inherit;
+            background: radial-gradient(circle at 30% 40%, rgba(255, 215, 0, 0.06) 0%, transparent 70%);
+        }
+
+        /* ── HEADER ── */
+        h2 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(145deg, #ffe68f, #ffb347, #ffd966);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            letter-spacing: -0.5px;
+            filter: drop-shadow(0 0 12px #ffbf00);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        h2::after {
+            content: "⚜️";
+            font-size: 1.9rem;
+            filter: drop-shadow(0 0 4px gold);
+        }
+
+        /* ── JOB INFO ── */
+        #jobInfo {
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid #ffd96670;
+            border-radius: 2rem;
+            padding: 1.4rem 1.6rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 18px rgba(255, 215, 0, 0.15), inset 0 0 6px #000000;
+            backdrop-filter: blur(5px);
+        }
+
+        #jobInfo p {
+            font-size: 1.1rem;
+            margin: 0.6rem 0;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        #jobInfo strong {
+            font-weight: 600;
+            color: #ffdb8e;
+            text-shadow: 0 0 6px #ffb300;
+            min-width: 120px;
+        }
+
+        #currentStatus {
+            display: inline-block;
+            background: linear-gradient(135deg, #2f2a1a, #1f1a0c);
+            padding: 0.35rem 1.2rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            color: #ffdd88;
+            border: 1px solid #f5c542;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            animation: softGlow 2.5s infinite ease-in-out;
+        }
+
+        @keyframes softGlow {
+            0% {
+                box-shadow: 0 0 5px #ffbf60, 0 0 8px #ffbf60;
+            }
+            50% {
+                box-shadow: 0 0 18px #ffaa33, 0 0 25px #ffaa33;
+            }
+            100% {
+                box-shadow: 0 0 5px #ffbf60, 0 0 8px #ffbf60;
+            }
+        }
+
+        /* ── MAP CONTAINER ── */
+        #userMap {
+            height: 260px;
+            width: 100%;
+            border-radius: 1.8rem;
+            border: 2px solid #ffd966aa;
+            margin: 1.2rem 0;
+            box-shadow: 0 0 20px #ffaa40, inset 0 0 8px #ffda8840;
+            background: #0a0802;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #userMap .leaflet-container {
+            background: #0a0802;
+        }
+
+        #userMap .leaflet-control-zoom {
+            border: 1px solid rgba(255, 217, 102, 0.7) !important;
+            box-shadow: 0 0 8px rgba(255, 179, 0, 0.45);
+        }
+
+        #userMap .leaflet-control-zoom a {
+            background: rgba(20, 16, 5, 0.9);
+            color: #ffdd88;
+            border-bottom-color: rgba(255, 217, 102, 0.4);
+        }
+
+        /* ── MAP FALLBACK OVERLAY ── */
+        .map-fallback-note {
+            position: absolute;
+            inset: 0;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.88);
+            color: #ffdd88;
+            border-radius: 1.8rem;
+            padding: 1.2rem;
+            z-index: 500;
+            text-align: center;
+            font-weight: 500;
+            gap: 6px;
+            backdrop-filter: blur(6px);
+            border: 1px solid #f5c542;
+        }
+
+        .map-fallback-note .coord-row {
+            font-size: 0.85rem;
+            color: #ffd966;
+            background: rgba(255, 215, 0, 0.08);
+            padding: 4px 14px;
+            border-radius: 999px;
+            border: 1px solid #ffd96640;
+            margin: 3px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .map-fallback-note .coord-label {
+            font-weight: 300;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #bba66a;
+        }
+
+        .map-fallback-note .big-icon {
+            font-size: 2.2rem;
+            margin-bottom: 4px;
+        }
+
+        /* ── CONTROLS ── */
+        #statusControls {
+            margin: 1.5rem 0 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        button {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid #ffd966;
+            color: #ffefbf;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.85rem 1.8rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            transition: 0.2s ease;
+            backdrop-filter: blur(4px);
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #ffd966;
+            color: #0a0802;
+            border-color: #ffea9e;
+            box-shadow: 0 0 25px #ffaa33, 0 6px 12px black;
+            transform: translateY(-2px);
+        }
+
+        .card>button:last-of-type {
+            background: rgba(0, 0, 0, 0.6);
+            border-color: #b88f42;
+            margin-top: 0.5rem;
+        }
+
+        .card>button:last-of-type:hover {
+            background: #c99f48;
+            border-color: #ffda88;
+            color: black;
+        }
+
+        input[type="text"] {
+            background: #141108;
+            border: 2px solid #c9a34b;
+            border-radius: 3rem;
+            padding: 1rem 1.5rem;
+            font-family: 'Poppins', monospace;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #ffefcc;
+            outline: none;
+            width: 100%;
+            box-shadow: 0 0 12px #aa8830;
+            transition: 0.2s;
+            text-align: center;
+            letter-spacing: 1px;
+        }
+
+        input[type="text"]:focus {
+            border-color: #ffcc55;
+            box-shadow: 0 0 28px #ffbb44, inset 0 0 10px #ffdd99;
+            background: #1f1c0e;
+        }
+
+        /* ── DISTANCE BADGE ── */
+        #distanceBadge {
+            display: none;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #ffd966;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid #ffd96650;
+            margin: 6px 0 0 0;
+            font-weight: 400;
+            letter-spacing: 0.3px;
+        }
+
+        #distanceBadge .dist-val {
+            font-weight: 700;
+            color: #ffe28a;
+        }
+
+        /* ── MAP LEGEND ── */
+        .map-legend {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            z-index: 400;
+            background: rgba(0, 0, 0, 0.75);
+            border-radius: 999px;
+            padding: 6px 16px 6px 12px;
+            border: 1px solid #ffd96650;
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 0.7rem;
+            color: #ddc68a;
+            pointer-events: none;
+        }
+
+        .map-legend .leg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .map-legend .leg-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .leg-dot.worker-dot {
+            background: #4fc3f7;
+            box-shadow: 0 0 10px #4fc3f7aa;
+        }
+        .leg-dot.customer-dot {
+            background: #ffb74d;
+            box-shadow: 0 0 10px #ffb74daa;
+        }
+
+        /* responsive */
+        @media (max-width: 480px) {
+            .card {
+                padding: 1.4rem 1rem;
+                border-radius: 1.8rem;
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            #userMap {
+                height: 200px;
+            }
+            #jobInfo p {
+                font-size: 0.95rem;
+            }
+            .map-legend {
+                font-size: 0.6rem;
+                padding: 4px 10px 4px 8px;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>⚡ JOB STATUS</h2>
+        <div id="jobInfo"></div>
+
+        <!-- MAP -->
+        <div id="userMap">
+            <div class="map-fallback-note" id="fallbackNote">
+                <div class="big-icon">📍</div>
+                <div style="font-weight:600;font-size:1.1rem;">Map tiles unavailable</div>
+                <div style="font-size:0.8rem;color:#bba66a;margin-bottom:8px;">using local coordinates</div>
+                <div class="coord-row" id="fbWorkerCoord">🧑‍🔧 You: —</div>
+                <div class="coord-row" id="fbCustomerCoord">📍 Customer: —</div>
+                <div style="margin-top:8px;font-size:0.7rem;color:#887a4a;">GPS updates in real-time</div>
+            </div>
+            <div class="map-legend">
+                <span class="leg-item"><span class="leg-dot worker-dot"></span> You</span>
+                <span class="leg-item"><span class="leg-dot customer-dot"></span> Customer</span>
+            </div>
+        </div>
+
+        <!-- distance badge -->
+        <div id="distanceBadge">📏 Distance: <span class="dist-val" id="distValue">—</span></div>
+
+        <div id="statusControls"></div>
+        <button onclick="goBack()">← BACK TO DASHBOARD</button>
+    </div>
+
+    <script>
+        (async function() {
+            'use strict';
+
+            // ── CONFIG ──
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookingId = urlParams.get('bookingId');
+            const currentWorker = JSON.parse(localStorage.getItem('currentWorker'));
+            const workerToken = localStorage.getItem('workerToken');
+            const API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (() => {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api`;
+            })();
+            const ARRIVAL_OTP_API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (() => {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api/arrival-otp`;
+            })();
+            const authHeaders = () => ({
+                'Authorization': `Bearer ${workerToken}`,
+                'Content-Type': 'application/json'
+            });
+
+            if (!currentWorker || !workerToken) window.location.href = 'login.html';
+
+            const socket = window.io ? window.io({
+                auth: { token: `Bearer ${workerToken}` },
+                transports: ['websocket']
+            }) : null;
+
+            const postJson = async (url, payload, headers = { 'Content-Type': 'application/json' }) => {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify(payload)
+                });
+                let data = {};
+                try {
+                    data = await response.json();
+                } catch (jsonErr) {
+                    const text = await response.text().catch(() => '');
+                    if (!response.ok) {
+                        throw new Error(text || `${response.status} ${response.statusText}`);
+                    }
+                    return { text };
+                }
+                if (!response.ok) {
+                    throw new Error(data.message || data.error || 'Request failed');
+                }
+                return data;
+            };
+
+            // ── FETCH BOOKING ──
+            async function fetchBooking() {
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${bookingId}`, { headers: authHeaders() });
+                    if (!res.ok) return null;
+                    return await res.json();
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            let booking = await fetchBooking();
+            if (!booking || booking.workerId !== currentWorker.id) {
+                alert('Invalid job');
+                window.location.href = 'dashboard.html';
+            }
+
+            // ── RESOLVE LOCATION ──
+            const readCoordinateObject = (candidate) => {
+                if (!candidate || typeof candidate !== 'object') return null;
+                const numeric = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+                const lat = numeric(candidate.latitude ?? candidate.lat);
+                const lng = numeric(candidate.longitude ?? candidate.lng ?? candidate.long ?? candidate.lon);
+                if (lat !== null && lng !== null) return { lat, lng };
+                const legacyLat = numeric(candidate.lat);
+                const legacyLng = numeric(candidate.lng ?? candidate.long ?? candidate.lon);
+                if (legacyLat !== null && legacyLng !== null) return { lat: legacyLat, lng: legacyLng };
+                return null;
+            };
+
+            const resolveBookingLocation = (bookingData) => {
+                const fromUser = readCoordinateObject(bookingData.userLocation);
+                if (fromUser) return fromUser;
+                const fromLoc = readCoordinateObject(bookingData.location);
+                if (fromLoc) return fromLoc;
+                if (typeof bookingData.location === 'string') {
+                    const cleaned = bookingData.location.trim();
+                    const nums = cleaned.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+                    if (nums.length >= 2) {
+                        const [a, b] = nums;
+                        if (Math.abs(a) <= 90 && Math.abs(b) <= 180) return { lat: a, lng: b };
+                        return { lat: b, lng: a };
+                    }
+                }
+                return { lat: 28.6139, lng: 77.2090 };
+            };
+
+            // ── INITIAL CUSTOMER LOCATION ──
+            const initialCust = resolveBookingLocation(booking);
+            booking.userLat = initialCust.lat;
+            booking.userLng = initialCust.lng;
+
+            // ── WORKER LOCATION STORE ──
+            let workerLocations = {};
+            if (!workerLocations[bookingId]) {
+                workerLocations[bookingId] = {
+                    lat: booking.userLat + 0.015,
+                    lng: booking.userLng + 0.015,
+                    lastUpdate: Date.now()
+                };
+            }
+
+            let workerWatchId = null;
+            let workerSocketJoined = false;
+            let lastWorkerSent = null;
+
+            function haversineMeters(lat1, lng1, lat2, lng2) {
+                const R = 6371000;
+                const toRad = (d) => (d * Math.PI) / 180;
+                const dLat = toRad(lat2 - lat1);
+                const dLng = toRad(lng2 - lng1);
+                const a = Math.sin(dLat / 2) ** 2 +
+                    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+                    Math.sin(dLng / 2) ** 2;
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            }
+
+            function updateWorkerLocationOnServer(lat, lng, accuracy = 0) {
+                workerLocations[bookingId] = { lat, lng, lastUpdate: Date.now() };
+                const payload = { bookingId, lat, lng, accuracy };
+                if (socket && workerSocketJoined) {
+                    socket.emit('workerLocationUpdate', payload);
+                } else {
+                    fetch(`${API_BASE}/bookings/${bookingId}/location`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ lat, lng, accuracy })
+                    }).catch(() => {});
+                }
+                updateWorkerMarker();
+                updateDistance();
+                updateFallbackCoords();
+            }
+
+            // ── GPS WATCH ──
+            function startWorkerGpsWatch(status) {
+                if (!navigator.geolocation) return;
+                const active = ['accepted', 'on_the_way', 'near', 'arrived', 'in_progress'];
+                if (!active.includes(status)) {
+                    if (workerWatchId !== null) {
+                        navigator.geolocation.clearWatch(workerWatchId);
+                        workerWatchId = null;
+                        lastWorkerSent = null;
+                    }
+                    return;
+                }
+                if (workerWatchId !== null) return;
+                const MIN_INTERVAL_MS = 3000;
+                const MIN_MOVE_METERS = 8;
+
+                workerWatchId = navigator.geolocation.watchPosition(
+                    function(pos) {
+                        const lat = pos.coords.latitude;
+                        const lng = pos.coords.longitude;
+                        const accuracy = pos.coords.accuracy || 0;
+                        const now = Date.now();
+                        if (lastWorkerSent) {
+                            const elapsed = now - lastWorkerSent.at;
+                            const moved = haversineMeters(lastWorkerSent.lat, lastWorkerSent.lng, lat, lng);
+                            if (elapsed < MIN_INTERVAL_MS && moved < MIN_MOVE_METERS) return;
+                        }
+                        lastWorkerSent = { lat, lng, at: now };
+                        updateWorkerLocationOnServer(lat, lng, accuracy);
+                    },
+                    function(err) {
+                        console.warn('GPS error:', err);
+                    }, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 5000
+                    }
+                );
+            }
+
+            if (socket) {
+                socket.on('connect', () => { socket.emit('joinBooking', bookingId); });
+                socket.on('bookingJoined', () => { workerSocketJoined = true; });
+                socket.on('bookingError', (data) => { console.warn('Socket error:', data?.message); });
+            }
+
+            // ── LEAFLET MAP ──
+            let userMap = null;
+            let workerMarker = null;
+            let workerCircle = null;
+            let customerMarker = null;
+            let mapInitialized = false;
+
+            function getWorkerLoc() {
+                return workerLocations[bookingId] || null;
+            }
+
+            function getCustomerLoc() {
+                return { lat: booking.userLat, lng: booking.userLng };
+            }
+
+            // ── INIT MAP ──
+            function initUserMap() {
+                const container = document.getElementById('userMap');
+                const fallback = document.getElementById('fallbackNote');
+                if (!container) return;
+                if (typeof window.L === 'undefined') {
+                    showFallback('Leaflet library failed to load.');
+                    return;
+                }
+                if (userMap) {
+                    userMap.invalidateSize();
+                    return;
+                }
+
+                const wl = getWorkerLoc();
+                const cl = getCustomerLoc();
+                const center = wl ? [wl.lat, wl.lng] : [cl.lat, cl.lng];
+
+                try {
+                    userMap = window.L.map('userMap', {
+                        zoomControl: true,
+                        attributionControl: true,
+                        zoom: 15
+                    }).setView(center, 15);
+
+                    const tileLayer = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap',
+                        subdomains: 'abc',
+                        maxZoom: 19,
+                        crossOrigin: true
+                    });
+
+                    let tileError = false;
+                    tileLayer.on('tileerror', function() {
+                        if (!tileError) {
+                            tileError = true;
+                            showFallback('Map tiles unavailable — using local coordinates');
+                        }
+                    });
+
+                    tileLayer.on('load', function() {
+                        if (fallback) fallback.style.display = 'none';
+                        tileError = false;
+                    });
+
+                    tileLayer.addTo(userMap);
+
+                    // Customer marker
+                    customerMarker = window.L.circleMarker([cl.lat, cl.lng], {
+                        radius: 12,
+                        color: '#ffb74d',
+                        fillColor: '#ff9800',
+                        fillOpacity: 0.85,
+                        weight: 3,
+                        className: 'customer-marker'
+                    }).addTo(userMap).bindPopup('📍 Customer Location', { closeButton: false });
+
+                    // Worker marker
+                    if (wl) {
+                        workerMarker = window.L.circleMarker([wl.lat, wl.lng], {
+                            radius: 10,
+                            color: '#4fc3f7',
+                            fillColor: '#00bcd4',
+                            fillOpacity: 0.9,
+                            weight: 3,
+                            className: 'worker-marker'
+                        }).addTo(userMap).bindPopup('🧑‍🔧 You are here', { closeButton: false });
+
+                        workerCircle = window.L.circle([wl.lat, wl.lng], {
+                            radius: 25,
+                            color: '#4fc3f740',
+                            fillColor: '#4fc3f720',
+                            fillOpacity: 0.3,
+                            weight: 1,
+                            dashArray: '4 4'
+                        }).addTo(userMap);
+                    }
+
+                    setTimeout(() => {
+                        if (!tileError && fallback) fallback.style.display = 'none';
+                        updateFallbackCoords();
+                    }, 800);
+
+                    mapInitialized = true;
+                    userMap.invalidateSize();
+                    setTimeout(updateDistance, 500);
+
+                } catch (err) {
+                    console.error('Map init error:', err);
+                    showFallback('Map could not be initialized.');
+                }
+            }
+
+            // ── SHOW FALLBACK ──
+            function showFallback(message) {
+                const fb = document.getElementById('fallbackNote');
+                if (!fb) return;
+                fb.style.display = 'flex';
+                const bigIcon = fb.querySelector('.big-icon');
+                if (bigIcon) bigIcon.textContent = '🗺️';
+                const msgEl = fb.querySelector('div:nth-child(2)');
+                if (msgEl) msgEl.textContent = message || 'Map unavailable';
+                updateFallbackCoords();
+            }
+
+            // ── UPDATE FALLBACK COORDS ──
+            function updateFallbackCoords() {
+                const fb = document.getElementById('fallbackNote');
+                if (!fb) return;
+                const wl = getWorkerLoc();
+                const cl = getCustomerLoc();
+                const wEl = document.getElementById('fbWorkerCoord');
+                const cEl = document.getElementById('fbCustomerCoord');
+                if (wEl) {
+                    wEl.textContent = wl && typeof wl.lat === 'number' && typeof wl.lng === 'number' ?
+                        `🧑‍🔧 You: ${wl.lat.toFixed(6)}, ${wl.lng.toFixed(6)}` :
+                        '🧑‍🔧 You: waiting for GPS...';
+                }
+                if (cEl) {
+                    cEl.textContent = cl && typeof cl.lat === 'number' && typeof cl.lng === 'number' ?
+                        `📍 Customer: ${cl.lat.toFixed(6)}, ${cl.lng.toFixed(6)}` :
+                        '📍 Customer: unknown';
+                }
+            }
+
+            // ── UPDATE WORKER MARKER ──
+            function updateWorkerMarker() {
+                if (!userMap || !mapInitialized) return;
+                const wl = getWorkerLoc();
+                if (!wl || typeof wl.lat !== 'number' || typeof wl.lng !== 'number') return;
+                const lat = wl.lat;
+                const lng = wl.lng;
+
+                if (workerMarker) {
+                    workerMarker.setLatLng([lat, lng]);
+                } else {
+                    workerMarker = window.L.circleMarker([lat, lng], {
+                        radius: 10,
+                        color: '#4fc3f7',
+                        fillColor: '#00bcd4',
+                        fillOpacity: 0.9,
+                        weight: 3,
+                        className: 'worker-marker'
+                    }).addTo(userMap).bindPopup('🧑‍🔧 You are here', { closeButton: false });
+                }
+
+                if (workerCircle) {
+                    workerCircle.setLatLng([lat, lng]);
+                } else {
+                    workerCircle = window.L.circle([lat, lng], {
+                        radius: 25,
+                        color: '#4fc3f740',
+                        fillColor: '#4fc3f720',
+                        fillOpacity: 0.3,
+                        weight: 1,
+                        dashArray: '4 4'
+                    }).addTo(userMap);
+                }
+
+                const center = userMap.getCenter();
+                const dist = haversineMeters(center.lat, center.lng, lat, lng);
+                if (dist > 50) {
+                    userMap.panTo([lat, lng], { animate: true, duration: 0.8 });
+                }
+
+                updateDistance();
+                updateFallbackCoords();
+            }
+
+            // ── UPDATE CUSTOMER LOCATION & MARKER ──
+            function updateCustomerLocationAndMarker() {
+                // Recalculate customer location from current booking
+                const newLoc = resolveBookingLocation(booking);
+                booking.userLat = newLoc.lat;
+                booking.userLng = newLoc.lng;
+
+                if (!userMap || !mapInitialized) return;
+                const cl = getCustomerLoc();
+                if (customerMarker) {
+                    customerMarker.setLatLng([cl.lat, cl.lng]);
+                } else {
+                    customerMarker = window.L.circleMarker([cl.lat, cl.lng], {
+                        radius: 12,
+                        color: '#ffb74d',
+                        fillColor: '#ff9800',
+                        fillOpacity: 0.85,
+                        weight: 3,
+                        className: 'customer-marker'
+                    }).addTo(userMap).bindPopup('📍 Customer Location', { closeButton: false });
+                }
+                updateDistance();
+                updateFallbackCoords();
+            }
+
+            // ── UPDATE DISTANCE ──
+            function updateDistance() {
+                const badge = document.getElementById('distanceBadge');
+                const valEl = document.getElementById('distValue');
+                if (!badge || !valEl) return;
+                const wl = getWorkerLoc();
+                const cl = getCustomerLoc();
+                if (!wl || !cl) {
+                    badge.style.display = 'none';
+                    return;
+                }
+                const dist = haversineMeters(wl.lat, wl.lng, cl.lat, cl.lng);
+                let display = '';
+                if (dist < 1000) {
+                    display = Math.round(dist) + ' m';
+                } else {
+                    display = (dist / 1000).toFixed(1) + ' km';
+                }
+                valEl.textContent = display;
+                badge.style.display = 'block';
+            }
+
+            // ── RENDER ──
+            async function render() {
+                const fresh = await fetchBooking();
+                if (!fresh) return;
+                booking = fresh;
+
+                // Update customer location from fresh data
+                updateCustomerLocationAndMarker();
+
+                document.getElementById('jobInfo').innerHTML = `
+                    <p><strong>📋 Booking ID:</strong> ${booking.id}</p>
+                    <p><strong>📌 Current Status:</strong> <span id="currentStatus">${booking.status}</span></p>
+                `;
+                updateControls();
+                startWorkerGpsWatch(booking.status);
+
+                if (!mapInitialized) {
+                    initUserMap();
+                } else {
+                    updateWorkerMarker();
+                    updateDistance();
+                    updateFallbackCoords();
+                    if (userMap) userMap.invalidateSize();
+                }
+            }
+
+            // ── CONTROLS ──
+            function updateControls() {
+                const status = booking.status;
+                let html = '';
+                if (status === 'accepted') {
+                    html = '<button onclick="updateStatus(\'on_the_way\')">🚀 ON THE WAY</button>';
+                } else if (status === 'on_the_way') {
+                    html = '<button onclick="updateStatus(\'near\')">📍 NEAR LOCATION</button>';
+                } else if (status === 'near') {
+                    html = '<button onclick="updateStatus(\'arrived\')">🏁 ARRIVED</button>';
+                } else if (status === 'arrived') {
+                    html = `
+                        <p style="margin-left:0.5rem;font-size:0.9rem;">🔐 Enter OTP from user:</p>
+                        <input type="text" id="otpInput" placeholder="6-digit golden code" maxlength="6">
+                        <button onclick="verifyOtp()">✨ VERIFY & START WORK</button>
+                        <button onclick="resendArrivalOtp()">📧 RESEND OTP</button>
+                    `;
+                } else if (status === 'in_progress') {
+                    html = '<button onclick="updateStatus(\'completed\')">✅ MARK COMPLETE</button>';
+                }
+                document.getElementById('statusControls').innerHTML = html;
+            }
+
+            // ── FIX: Properly extract user email from booking ──
+            function resolveBookingUserEmail(b) {
+                // Try nested user object, direct email property, or fallback to userId (but that's not email)
+                return (b && (b.user?.email || b.email || b.userId)) || '';
+            }
+
+            async function sendArrivalOtpForBooking(b) {
+                const email = resolveBookingUserEmail(b);
+                if (!email) throw new Error('User email not found in booking data.');
+                // Basic email format check
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    // If it's not an email, it's probably an ID — fallback to a placeholder (or throw)
+                    throw new Error('Invalid user email format: ' + email);
+                }
+                await postJson(`${ARRIVAL_OTP_API_BASE}/send`, {
+                    bookingId: b.id,
+                    email,
+                    serviceName: currentWorker.role || 'General Service'
+                });
+            }
+
+            // ── GLOBAL FUNCTIONS ──
+            window.updateStatus = async function(newStatus) {
+                if (newStatus === 'arrived') {
+                    try {
+                        await sendArrivalOtpForBooking(booking);
+                        alert('📧 Arrival OTP sent to user email.');
+                    } catch (error) {
+                        alert('Failed to send OTP: ' + error.message);
+                        return;
+                    }
+                }
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${bookingId}/status`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ status: newStatus })
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) { alert(data.message || 'Could not update status.'); return; }
+                    booking = data;
+                    document.getElementById('currentStatus').innerText = newStatus;
+                    updateControls();
+                    startWorkerGpsWatch(newStatus);
+                    if (newStatus === 'completed') {
+                        try {
+                            const amount = booking.emergency ? 600 : 200;
+                            await postJson(`${API_BASE}/payments-data`, { bookingId: booking.id, amount, status: 'pending' },
+                                authHeaders());
+                            alert('✨ Job completed. Payment request sent to Special Admin.');
+                        } catch (err) {
+                            alert('Job marked complete, but payment record failed: ' + err.message);
+                        }
+                    }
+                } catch (err) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            };
+
+            window.verifyOtp = function() {
+                const entered = document.getElementById('otpInput')?.value || '';
+                const otp = entered.replace(/\D/g, '');
+                if (!otp || otp.length !== 6) {
+                    alert('Please enter a valid 6-digit OTP.');
+                    return;
+                }
+                // Disable button to prevent multiple clicks
+                const btn = document.querySelector('#statusControls button:first-of-type');
+                if (btn) btn.disabled = true;
+
+                postJson(`${ARRIVAL_OTP_API_BASE}/verify`, { bookingId: booking.id, email: resolveBookingUserEmail(booking), otp })
+                    .then(() => {
+                        // OTP verified — now update status to 'in_progress'
+                        return fetch(`${API_BASE}/bookings/${bookingId}/status`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ status: 'in_progress' })
+                        });
+                    })
+                    .then(async (res) => {
+                        const data = await res.json().catch(() => ({}));
+                        if (!res.ok) { throw new Error(data.message || 'Status update failed'); }
+                        booking = data;
+                        document.getElementById('currentStatus').innerText = 'in_progress';
+                        updateControls();
+                        startWorkerGpsWatch('in_progress');
+                        // Clear OTP input
+                        const input = document.getElementById('otpInput');
+                        if (input) input.value = '';
+                        alert('🔓 OTP verified. Work started.');
+                    })
+                    .catch((error) => {
+                        alert('Verification failed: ' + error.message);
+                    })
+                    .finally(() => {
+                        if (btn) btn.disabled = false;
+                    });
+            };
+
+            window.resendArrivalOtp = function() {
+                sendArrivalOtpForBooking(booking)
+                    .then(() => alert('📧 OTP resent to user email.'))
+                    .catch((error) => {
+                        console.error('Resend arrival OTP failed:', error);
+                        alert('Resend failed: ' + error.message);
+                    });
+            };
+
+            window.goBack = function() { window.location.href = 'dashboard.html'; };
+
+            // ── START ──
+            await render();
+
+            const refreshInterval = setInterval(() => {
+                render();
+            }, 8000);
+
+            window.addEventListener('beforeunload', () => {
+                clearInterval(refreshInterval);
+                if (workerWatchId !== null && navigator.geolocation) {
+                    navigator.geolocation.clearWatch(workerWatchId);
+                }
+                if (socket) socket.disconnect();
+            });
+
+            window.addEventListener('resize', () => {
+                if (userMap) userMap.invalidateSize();
+            });
+
+            console.log('📍 Job Tracker ready. Booking:', bookingId);
+
+        })();
+    </script>
+
+</body>
+</html>

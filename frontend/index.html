@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Servisphere | Glitter Portal</title>
+
+    <!-- Google Fonts Premium: Poppins + Orbitron for futuristic touch -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 10% 20%, #07161f, #010a0f);
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ✨ BACKGROUND GLITTER PARTICLES (cosmic shimmer) ✨ */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(2px 2px at 15% 30%, rgba(255, 255, 255, 0.7) 1.5px, transparent 1.5px),
+                radial-gradient(1.5px 1.5px at 70% 85%, rgba(255, 215, 0, 0.8) 1px, transparent 1px),
+                radial-gradient(2.5px 2.5px at 45% 55%, rgba(0, 255, 255, 0.6) 2px, transparent 2px),
+                radial-gradient(1px 1px at 88% 22%, rgba(255, 100, 200, 0.8) 1px, transparent 1px),
+                radial-gradient(2px 2px at 32% 78%, rgb(255, 200, 100) 1px, transparent 1px);
+            background-size: 220px 220px, 180px 180px, 280px 280px, 150px 150px, 200px 200px;
+            background-repeat: repeat;
+            opacity: 0.35;
+            pointer-events: none;
+            animation: floatingGlitter 70s linear infinite;
+            z-index: 0;
+        }
+
+        /* secondary glitter layer — more movement */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(1.2px 1.2px at 25% 40%, rgba(255, 255, 180, 0.9) 1px, transparent 1px);
+            background-size: 130px 130px;
+            background-repeat: repeat;
+            opacity: 0.4;
+            pointer-events: none;
+            animation: driftGlitter 45s infinite alternate;
+            z-index: 0;
+        }
+
+        /* main glass container */
+        .container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 3rem 2.5rem;
+            border-radius: 56px;
+            background: rgba(12, 25, 35, 0.55);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset, 0 0 30px rgba(0, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            max-width: 1100px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 800;
+            font-size: 3rem;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff, #a0f0ff, #ffe6b0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 18px rgba(0, 200, 255, 0.6);
+            margin-bottom: 1.2rem;
+            animation: textGlowPulse 3s infinite alternate;
+        }
+
+        @keyframes textGlowPulse {
+            0% { text-shadow: 0 0 5px cyan, 0 0 10px #00aaff; }
+            100% { text-shadow: 0 0 20px #ffd966, 0 0 30px #ffaa33; }
+        }
+
+        /* BUTTON GRID - more attractive than ever */
+        .role-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 28px;
+            margin-top: 2rem;
+        }
+
+        /* ---- GLITTER BUTTON MASTER STYLES ---- */
+        .role-links a {
+            position: relative;
+            min-width: 210px;
+            padding: 1rem 2rem;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: 1.5px;
+            text-align: center;
+            border-radius: 60px;
+            color: white;
+            backdrop-filter: blur(2px);
+            transition: all 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255,255,255,0.2) inset;
+            overflow: hidden;
+            z-index: 2;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        /* Individual button vibrant gradients (more luminous) */
+        .role-links a:nth-child(1) {
+            background: linear-gradient(125deg, #0066ff, #3a86ff, #00c2ff);
+            box-shadow: 0 5px 18px rgba(0, 110, 255, 0.5);
+        }
+        .role-links a:nth-child(2) {
+            background: linear-gradient(125deg, #0f9b3e, #2dc96b, #8eff70);
+            box-shadow: 0 5px 18px rgba(46, 204, 113, 0.5);
+        }
+        .role-links a:nth-child(3) {
+            background: linear-gradient(125deg, #ff8c00, #ffb347, #ffd966);
+            box-shadow: 0 5px 18px rgba(255, 140, 0, 0.5);
+        }
+        .role-links a:nth-child(4) {
+            background: linear-gradient(125deg, #aa2eff, #c85eff, #e599ff);
+            box-shadow: 0 5px 18px rgba(170, 46, 255, 0.6);
+        }
+
+        /* 1️⃣ GLITTER OVERLAY - moving sparkle pattern (constant glitter animation) */
+        .role-links a::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.9) 1.8px, transparent 1.8px),
+                radial-gradient(circle at 70% 65%, rgba(255, 235, 140, 0.95) 1.5px, transparent 1.5px),
+                radial-gradient(circle at 45% 85%, rgba(255, 180, 60, 0.9) 1.2px, transparent 1.2px);
+            background-size: 55px 55px, 70px 70px, 90px 90px;
+            background-repeat: repeat;
+            opacity: 0.55;
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: overlay;
+            animation: glitterShift 12s linear infinite;
+            transition: opacity 0.3s;
+            border-radius: 60px;
+        }
+
+        /* 2️⃣ SHIMMER SWEEP (dramatic light ray) - adds dynamic glittery shine */
+        .role-links a::after {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -80%;
+            width: 70%;
+            height: 200%;
+            background: linear-gradient(115deg, 
+                rgba(255, 255, 255, 0) 0%, 
+                rgba(255, 255, 255, 0.45) 45%, 
+                rgba(255, 250, 210, 0.8) 50%,
+                rgba(255, 255, 255, 0.45) 55%,
+                rgba(255, 255, 255, 0) 100%);
+            transform: skewX(-18deg);
+            opacity: 0;
+            transition: opacity 0.4s, left 0.5s ease-out;
+            z-index: 2;
+            pointer-events: none;
+            border-radius: 60px;
+        }
+
+        /* Hover: intense glitter and magic sweep */
+        .role-links a:hover::before {
+            opacity: 0.9;
+            animation: glitterShift 0.8s linear infinite;
+        }
+
+        .role-links a:hover::after {
+            opacity: 1;
+            left: 110%;
+            transition: left 0.65s cubic-bezier(0.2, 1, 0.3, 1);
+        }
+
+        /* 3D HOVER EFFECTS + extra glow */
+        .role-links a:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 18px 35px rgba(0, 0, 0, 0.4), 0 0 22px rgba(255, 255, 180, 0.9);
+            letter-spacing: 2px;
+            transition: all 0.25s ease-out;
+        }
+
+        .role-links a:active {
+            transform: translateY(3px) scale(0.98);
+            transition: 0.05s linear;
+        }
+
+        /* individual glitter color variation per button (extra charm) */
+        .role-links a:nth-child(1):hover::before {
+            background-image: radial-gradient(circle at 30% 40%, rgba(160, 220, 255, 1) 2px, transparent 2px),
+                              radial-gradient(circle at 70% 20%, rgba(255, 240, 150, 1) 1.8px, transparent 1.8px);
+            background-size: 45px 45px, 60px 60px;
+        }
+
+        .role-links a:nth-child(2):hover::before {
+            background-image: radial-gradient(circle at 40% 60%, rgba(220, 255, 140, 1) 2px, transparent 2px),
+                              radial-gradient(circle at 15% 80%, rgba(255, 210, 90, 1) 1.6px, transparent 1.6px);
+        }
+
+        .role-links a:nth-child(3):hover::before {
+            background-image: radial-gradient(circle at 60% 30%, rgba(255, 200, 70, 1) 2.2px, transparent 2.2px),
+                              radial-gradient(circle at 25% 70%, rgba(255, 255, 190, 1) 1.5px, transparent 1.5px);
+        }
+
+        .role-links a:nth-child(4):hover::before {
+            background-image: radial-gradient(circle at 55% 45%, rgba(240, 170, 255, 1) 2px, transparent 2px),
+                              radial-gradient(circle at 85% 65%, rgba(255, 210, 245, 1) 1.8px, transparent 1.8px);
+        }
+
+        /* continuous glitter drift for background pattern (cosmic) */
+        @keyframes glitterShift {
+            0% {
+                background-position: 0px 0px, 0px 0px, 0px 0px;
+            }
+            100% {
+                background-position: 110px 45px, 75px 90px, 120px 35px;
+            }
+        }
+
+        /* body glitter floating animation */
+        @keyframes floatingGlitter {
+            0% {
+                background-position: 0px 0px, 0px 0px, 0px 0px, 0px 0px, 0px 0px;
+            }
+            100% {
+                background-position: 300px 150px, 180px 220px, 420px 80px, 90px 300px, 250px 180px;
+            }
+        }
+
+        @keyframes driftGlitter {
+            0% {
+                background-position: 0px 0px;
+            }
+            100% {
+                background-position: 200px 100px;
+            }
+        }
+
+        /* extra smooth font & small embellishment */
+        .role-links a span {
+            position: relative;
+            z-index: 5;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+
+        /* subtle icon-like stars (no extra libs) */
+        .role-links a::before {
+            content: "";
+        }
+
+        /* responsive & mobile touch */
+        @media (max-width: 720px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .role-links a {
+                min-width: 170px;
+                padding: 0.8rem 1.2rem;
+                font-size: 1rem;
+            }
+            .role-links {
+                gap: 18px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .role-links {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 16px;
+            }
+            .role-links a {
+                width: 100%;
+            }
+        }
+
+        /* additional glimmer ring on focus for accessibility */
+        .role-links a:focus-visible {
+            outline: 3px solid #ffd966;
+            outline-offset: 4px;
+            transform: scale(1.02);
+        }
+
+        /* custom sparkle text effect for welcome */
+        .tagline {
+            font-size: 0.9rem;
+            margin-top: 2rem;
+            color: #b0e4ff;
+            text-shadow: 0 0 3px rgba(0,255,255,0.6);
+            letter-spacing: 1px;
+            font-weight: 400;
+            background: rgba(0,0,0,0.3);
+            display: inline-block;
+            padding: 0.3rem 1.5rem;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>✨ SERVISPHERE ✨</h1>
+    <div style="margin-bottom: 0.8rem;">
+        <span class="tagline">✦ where magic meets service ✦</span>
+    </div>
+
+    <div class="role-links">
+        <a href="user/login.html"><span>👤 I'm a User</span></a>
+        <a href="worker/login.html"><span>🛠️ I'm a Worker</span></a>
+        <a href="admin/login.html"><span>👑 Admin</span></a>
+        <a href="special-admin/login.html"><span>🌟 Special Admin</span></a>
+    </div>
+
+    <!-- tiny sparkle note (just for design) -->
+    <div style="margin-top: 2rem; font-size: 0.7rem; opacity: 0.7; letter-spacing: 0.5px;">
+        ✦ glitter portals | animated shimmer ✦
+    </div>
+</div>
+
+</body>
+</html>

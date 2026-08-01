@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard · Elite Gold & Silver</title>
+    <!-- modern font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons (free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Emergency theme class (red/black + animated emergency overlay) */
+        body.emergency-mode {
+            background: radial-gradient(circle at 80% 10%, #3a0000, #050006 85%) !important;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Star/particle layer (CSS only, lightweight) */
+        body.emergency-mode::before,
+        body.emergency-mode::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.55;
+            mix-blend-mode: screen;
+        }
+        body.emergency-mode::before {
+            background:
+                radial-gradient(2px 2px at 10% 20%, rgba(255,255,255,0.9) 0 50%, transparent 55%),
+                radial-gradient(1px 1px at 25% 80%, rgba(255,255,255,0.65) 0 50%, transparent 55%),
+                radial-gradient(1.5px 1.5px at 55% 35%, rgba(255,255,255,0.75) 0 50%, transparent 55%),
+                radial-gradient(1px 1px at 75% 10%, rgba(255,255,255,0.6) 0 50%, transparent 55%),
+                radial-gradient(2px 2px at 85% 70%, rgba(255,255,255,0.85) 0 50%, transparent 55%),
+                radial-gradient(1px 1px at 40% 55%, rgba(255,255,255,0.55) 0 50%, transparent 55%),
+                radial-gradient(1.5px 1.5px at 5% 60%, rgba(255,255,255,0.7) 0 50%, transparent 55%);
+            animation: emergencyStarsDrift 18s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 70, 70, 0.35));
+        }
+        body.emergency-mode::after {
+            background:
+                radial-gradient(600px 420px at 20% 30%, rgba(255, 0, 60, 0.18), transparent 60%),
+                radial-gradient(520px 380px at 80% 60%, rgba(255, 80, 0, 0.14), transparent 60%),
+                radial-gradient(900px 600px at 60% 10%, rgba(255, 0, 0, 0.12), transparent 65%);
+            animation: emergencyPulseGlow 4.2s ease-in-out infinite;
+            filter: blur(0.5px);
+        }
+
+        @keyframes emergencyStarsDrift {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-60px, 120px, 0); }
+        }
+        @keyframes emergencyPulseGlow {
+            0%, 100% { opacity: 0.45; }
+            50% { opacity: 0.75; }
+        }
+
+        /* Ensure content stays above overlay */
+        body.emergency-mode .dashboard {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Emergency filter feel on glass surfaces */
+        body.emergency-mode .top-bar,
+        body.emergency-mode .card,
+        body.emergency-mode .service-card,
+        body.emergency-mode .worker-card,
+        body.emergency-mode .booking-card {
+            backdrop-filter: blur(14px) saturate(140%) contrast(115%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%) contrast(115%);
+        }
+        body.emergency-mode .top-bar {
+            border-color: #ff4d4d !important;
+            box-shadow: 0 0 30px #ff000080, 0 0 0 1px #ff4d4d inset !important;
+        }
+        body.emergency-mode .logout-btn {
+            border-color: #ff8888 !important;
+            color: #ffcccc !important;
+            box-shadow: 0 0 15px #ff4d4d !important;
+        }
+        body.emergency-mode .logout-btn:hover {
+            background: #ff4d4d !important;
+            color: #0a0f2b !important;
+            border-color: #ffb3b3 !important;
+        }
+        body.emergency-mode .premium-btn,
+        body.emergency-mode .more-btn,
+        body.emergency-mode .book-now-btn,
+        body.emergency-mode button {
+            background: linear-gradient(145deg, #4d1a1a, #1a1a4d) !important;
+            border-color: #ff6666 !important;
+            color: #ffe6e6 !important;
+            box-shadow: 0 0 20px #ff3333 !important;
+        }
+        body.emergency-mode .premium-btn:hover,
+        body.emergency-mode .more-btn:hover,
+        body.emergency-mode .book-now-btn:hover,
+        body.emergency-mode button:hover {
+            background: #ff4d4d !important;
+            color: #0a0f2b !important;
+            border-color: #ffb3b3 !important;
+            box-shadow: 0 0 30px #ff6666 !important;
+        }
+        body.emergency-mode .card {
+            border-color: #ff6666 !important;
+            box-shadow: 0 20px 40px -12px #330000, 0 0 0 1px #ff6666 inset !important;
+        }
+        body.emergency-mode .card h3 {
+            background: linear-gradient(135deg, #ffd0d0, #ff4d4d) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+        }
+        body.emergency-mode .worker-card,
+        body.emergency-mode .booking-card {
+            border-color: #ff8888 !important;
+        }
+        body.emergency-mode .icon-wrapper {
+            background: #4d1a1a !important;
+            border-color: #ff6666 !important;
+            color: #ffb3b3 !important;
+        }
+        body.emergency-mode .service-card:hover .icon-wrapper {
+            background: #ff4d4d !important;
+            color: #0a0f2b !important;
+        }
+        body.emergency-mode #userName {
+            background: linear-gradient(145deg, #ffd0d0, #ff4d4d) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+        }
+        /* Emergency button */
+        #emergencyBtn {
+            background: #cc0000;
+            border: 2px solid #ff9999;
+            color: white;
+            font-weight: 700;
+            padding: 0.6rem 1.8rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff0000;
+            transition: 0.2s;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+            margin-right: 1rem;
+        }
+        #emergencyBtn:hover {
+            background: #ff4d4d;
+            box-shadow: 0 0 30px #ff6666;
+            transform: scale(1.02);
+        }
+        body.emergency-mode #emergencyBtn {
+            background: #1a0505;
+            border-color: #ff6666;
+            box-shadow: 0 0 22px rgba(255, 0, 0, 0.55);
+        }
+        body.emergency-mode #emergencyBtn:hover {
+            background: #ff4d4d;
+            color: #1a0505 !important;
+            border-color: #ffd0d0;
+        }
+
+        /* Responsive emergency text sizing (subtle) */
+        body.emergency-mode .tab-btn,
+        body.emergency-mode .logout-btn,
+        body.emergency-mode #userInfo {
+            font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+        }
+
+        /* Base styles */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: radial-gradient(circle at 80% 10%, #2b2b20, #0a0a0f 90%);
+            min-height: 100vh;
+            padding: 2rem 1.5rem;
+            color: #ede7d9;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .dashboard {
+            max-width: 1400px;
+            width: 100%;
+        }
+
+        .top-bar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(10, 12, 18, 0.65);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 4rem;
+            padding: 0.9rem 2rem;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 30px -10px #000, 0 0 0 1px rgba(255, 215, 0, 0.2) inset, 0 0 20px #ffd70020;
+        }
+
+        #userInfo {
+            font-size: 1.2rem;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #userName {
+            font-weight: 600;
+            background: linear-gradient(145deg, #f5e7b2, #ffdb7c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 8px #ffd700;
+        }
+
+        #userEmail {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            color: #d6c48a;
+        }
+
+        /* City Badge - Neon Gold Premium (new, but fits theme) */
+        .city-badge {
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 215, 0, 0.7);
+            border-radius: 3rem;
+            padding: 0.3rem 1.2rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #ffdf9e;
+            box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+            cursor: pointer;
+            transition: 0.2s;
+            margin-left: 0.8rem;
+        }
+        .city-badge:hover {
+            background: #2a2418;
+            border-color: #ffd966;
+            transform: scale(1.02);
+        }
+
+        .logout-btn {
+            background: transparent;
+            border: 2px solid #c0a65a;
+            color: #f3e3b5;
+            font-weight: 600;
+            padding: 0.6rem 2rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 12px #b49450, 0 4px 12px black;
+            backdrop-filter: blur(5px);
+            transition: 0.2s;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .logout-btn:hover {
+            background: #dbb35c;
+            color: #0a0804;
+            border-color: #ffea9e;
+            box-shadow: 0 0 25px #ffbf00, 0 6px 14px black;
+            transform: scale(1.02);
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: rgba(18, 18, 24, 0.7);
+            backdrop-filter: blur(12px);
+            border: 2px solid #a89058;
+            color: #f5e7c8;
+            font-weight: 600;
+            padding: 0.8rem 2.5rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 15px #927f40;
+            transition: 0.2s;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn.active {
+            background: #dbb35c;
+            color: #0a0804;
+            border-color: #ffea9e;
+            box-shadow: 0 0 30px #ffbf00;
+        }
+        .tab-btn:hover {
+            background: #c9a459;
+            color: #0a0701;
+            border-color: #ffd877;
+            box-shadow: 0 0 25px #fcb42e;
+        }
+
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Services grid */
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 1rem;
+        }
+        .service-card {
+            background: rgba(18, 18, 24, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 2.5rem;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 20px 40px -12px black, 0 0 0 1px rgba(255, 215, 0, 0.2) inset;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+        .service-card:hover {
+            border-color: #f5cb5c;
+            box-shadow: 0 0 30px #ffd70040, 0 0 0 1px #ffd966 inset;
+            transform: translateY(-6px);
+        }
+        .icon-wrapper {
+            background: #3a311e;
+            width: 64px;
+            height: 64px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #ffdb7c;
+            margin-bottom: 1.5rem;
+            border: 1px solid #d4a13e;
+        }
+        .service-card:hover .icon-wrapper {
+            background: #c9a459;
+            color: #0a0804;
+        }
+        .service-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.6rem;
+            color: #fff2cf;
+        }
+        .service-desc {
+            color: #c4b28c;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.8rem;
+            flex: 1;
+        }
+        .book-now-btn {
+            background: linear-gradient(145deg, #2f2819, #1e1a10);
+            border: 2px solid #a5874b;
+            color: #f7e3b6;
+            font-weight: 600;
+            padding: 0.8rem 1rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 12px #8b763a;
+            transition: 0.2s;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+        .book-now-btn:hover {
+            background: #c9a459;
+            border-color: #ffd877;
+            color: #0a0701;
+            box-shadow: 0 0 25px #fcb42e;
+        }
+
+        .service-card.extra-service.hidden-service {
+            display: none;
+        }
+        .more-btn-container {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0 2rem;
+        }
+        .more-btn {
+            background: transparent;
+            border: 2px solid #a89058;
+            color: #f5e7c8;
+            font-weight: 600;
+            padding: 0.8rem 3rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 15px #927f40;
+            backdrop-filter: blur(8px);
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+        .more-btn:hover {
+            background: #dbb35c;
+            color: #0a0804;
+            border-color: #ffea9e;
+            box-shadow: 0 0 30px #ffbf00;
+        }
+
+        /* Cards */
+        .card {
+            background: rgba(18, 18, 24, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 2.5rem;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 20px 40px -12px black, 0 0 0 1px rgba(255, 215, 0, 0.2) inset, 0 0 30px #ffd70015;
+            animation: goldPulse 6s infinite ease-in-out;
+        }
+
+        .card h3 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #fff2cf, #e0c06b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #aa8e4e60;
+            padding-bottom: 0.8rem;
+        }
+
+        .worker-card, .booking-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #b4944c;
+            border-radius: 2rem;
+            padding: 1.4rem 1.6rem;
+            margin: 1rem 0;
+            box-shadow: 0 8px 20px -5px #000, 0 0 0 1px #ddb760 inset;
+            backdrop-filter: blur(4px);
+            transition: all 0.2s;
+        }
+
+        .worker-card:hover, .booking-card:hover {
+            border-color: #f5cb5c;
+            box-shadow: 0 12px 28px -8px black, 0 0 0 1px #ffd966 inset, 0 0 25px #ffbe2e;
+        }
+
+        .worker-card strong, .booking-card strong {
+            color: #ffdf9e;
+            font-weight: 600;
+            text-shadow: 0 0 4px #daa520;
+        }
+
+        /* Completed bookings in 3-column grid */
+        #completedJobs {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            align-items: start;
+        }
+        #bookingsList {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            align-items: start;
+        }
+        #completedJobs .booking-card {
+            margin: 0;
+            height: 100%;
+        }
+        #bookingsList .booking-card {
+            margin: 0;
+            height: 100%;
+        }
+
+        /* Availability badge (new, but matches theme) */
+        .availability-badge {
+            display: inline-block;
+            padding: 0.2rem 0.8rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-left: 0.5rem;
+            background: #3a311e;
+            color: #ffe29a;
+            border: 1px solid #d4a13e;
+            box-shadow: 0 0 8px #ffbe2e;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            background: rgba(0,0,0,0.6);
+            border: 1px solid;
+            backdrop-filter: blur(2px);
+        }
+
+        .badge-pending {
+            background: #3a311e;
+            border-color: #d4a13e;
+            color: #ffd966;
+            box-shadow: 0 0 10px #ffb700;
+        }
+
+        .badge-paid {
+            background: #3a311e;
+            border-color: #d4a13e;
+            color: #ffe29a;
+            box-shadow: 0 0 10px #ffbe2e;
+        }
+
+        .badge-completed {
+            background: #3a311e;
+            border-color: #d4a13e;
+            color: #ffe29a;
+            box-shadow: 0 0 10px #ffbe2e;
+        }
+
+        .badge-cancelled {
+            background: #4d1a1a;
+            border-color: #ff6666;
+            color: #ffb3b3;
+            box-shadow: 0 0 8px #ff3333;
+        }
+
+        /* Priority colors for My Bookings status indication */
+        .badge-priority-pending {
+            background: #4d1a1a;
+            border-color: #ff6666;
+            color: #ffd4d4;
+            box-shadow: 0 0 10px #ff3333;
+        }
+        .badge-priority-accepted {
+            background: #3a311e;
+            border-color: #ffd966;
+            color: #ffe9b3;
+            box-shadow: 0 0 10px #ffbe2e;
+        }
+        .badge-priority-completed {
+            background: #1b3d2a;
+            border-color: #58b987;
+            color: #c8f7d8;
+            box-shadow: 0 0 10px #2ecc71;
+        }
+
+        /* Cancel button style (red) */
+        .cancel-btn {
+            background: #b30000 !important;
+            border-color: #ff6666 !important;
+            color: white !important;
+            box-shadow: 0 0 15px #ff0000 !important;
+        }
+        .cancel-btn:hover {
+            background: #ff4d4d !important;
+            border-color: #ffb3b3 !important;
+            color: #0a0804 !important;
+            box-shadow: 0 0 25px #ff6666 !important;
+        }
+
+        .feedback-form {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(40, 32, 12, 0.78);
+            border-radius: 1.5rem;
+            border: 1px solid #d4a13e;
+            box-shadow: 0 0 14px rgba(255, 190, 46, 0.25);
+        }
+
+        select, textarea {
+            background: rgba(10, 8, 5, 0.8);
+            border: 1px solid #d4a13e;
+            border-radius: 2rem;
+            padding: 0.7rem 1.2rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.95rem;
+            color: #ffe7b3;
+            width: 100%;
+            margin: 0.5rem 0 1rem;
+            outline: none;
+            box-shadow: 0 0 10px #8a6d1e, inset 0 2px 6px black;
+            transition: 0.2s;
+        }
+
+        select:focus, textarea:focus {
+            border-color: #ffd966;
+            box-shadow: 0 0 18px #ffcc44, inset 0 2px 8px black;
+            background: #1f1a0e;
+        }
+
+        button, .btn {
+            background: linear-gradient(145deg, #2f2819, #1e1a10);
+            border: 2px solid #a5874b;
+            color: #f7e3b6;
+            font-weight: 600;
+            padding: 0.6rem 1.6rem;
+            border-radius: 3rem;
+            cursor: pointer;
+            box-shadow: 0 0 12px #8b763a, 0 4px 8px black;
+            transition: 0.2s;
+            font-size: 0.9rem;
+            letter-spacing: 0.3px;
+            margin: 0.25rem 0.5rem 0.25rem 0;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        button:hover, .btn:hover {
+            background: #c9a459;
+            border-color: #ffd877;
+            color: #0a0701;
+            box-shadow: 0 0 25px #fcb42e, 0 6px 12px black;
+            transform: scale(1.02);
+        }
+
+        .filter-hint {
+            color: #ffdb7c;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+        .clear-filter {
+            margin-left: 1rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            color: #ffd966;
+            text-decoration: underline;
+        }
+
+        @keyframes goldPulse {
+            0% { border-color: rgba(212, 175, 55, 0.4); }
+            50% { border-color: rgba(255, 215, 0, 0.9); box-shadow: 0 0 30px #ffd70040; }
+            100% { border-color: rgba(212, 175, 55, 0.4); }
+        }
+
+        /* ---------- Emergency Modal (original) ---------- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: rgba(18, 18, 24, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid #ff4d4d;
+            border-radius: 3rem;
+            padding: 2.5rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 50px #ff0000, 0 0 0 2px #ff4d4d inset;
+            color: #fff2cf;
+            position: relative;
+        }
+        .modal-content h2 {
+            font-size: 2.2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(145deg, #ffb3b3, #b3b3ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .modal-price {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #ffd966;
+            margin: 1rem 0;
+            text-shadow: 0 0 15px #ffaa00;
+        }
+        .modal-instructions {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 2rem;
+            margin: 1.5rem 0;
+            border: 1px solid #ff8888;
+        }
+        .modal-instructions p {
+            margin: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .modal-instructions i {
+            color: #ff6666;
+            width: 24px;
+        }
+        .modal-checkbox {
+            margin: 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+        .modal-checkbox input {
+            width: 20px;
+            height: 20px;
+            accent-color: #ff4d4d;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        .modal-actions button {
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+        }
+        #agreeBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .close-modal {
+            position: absolute;
+            top: 1.5rem;
+            right: 2rem;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ff9999;
+            background: none;
+            border: none;
+            box-shadow: none;
+        }
+        .close-modal:hover {
+            color: #ff4d4d;
+            background: none;
+            transform: scale(1.1);
+        }
+
+        /* ========== NEON GOLD LOCATION POPUP (new, premium, non-intrusive) ========== */
+        .location-modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            align-items: center;
+            justify-content: center;
+        }
+        .location-modal.active {
+            display: flex;
+        }
+        .location-modal-content {
+            background: rgba(10, 12, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255, 215, 0, 0.9);
+            border-radius: 3rem;
+            padding: 2.5rem;
+            max-width: 480px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.6), 0 0 0 2px rgba(255, 220, 100, 0.5) inset;
+            animation: scaleUp 0.3s ease;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .location-modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #ffea9e, #ffbf4a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .location-glow {
+            font-size: 3.5rem;
+            color: #ffd966;
+            filter: drop-shadow(0 0 12px #ffaa33);
+            margin: 1rem 0;
+        }
+        .location-modal-content p {
+            color: #f5e2b0;
+            margin: 1rem 0;
+            font-size: 1rem;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .modal-btn {
+            background: linear-gradient(145deg, #2f2819, #1e1a10);
+            border: 2px solid #f5b81b;
+            color: #ffefc0;
+            padding: 0.8rem 1.8rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .modal-btn-primary {
+            background: linear-gradient(145deg, #ffd966, #e6a017);
+            color: #1a1408;
+            border-color: #ffffb0;
+            box-shadow: 0 0 25px #ffcc44;
+        }
+        .modal-btn-primary:hover {
+            transform: scale(1.05);
+            background: #ffdf8c;
+            box-shadow: 0 0 35px #ffdd66;
+        }
+        .modal-btn-secondary:hover {
+            transform: scale(1.02);
+            background: #c9a459;
+            color: #0a0701;
+        }
+        .manual-select {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 215, 0, 0.4);
+            display: none;
+        }
+        .manual-select select {
+            background: #1e1b14;
+            border-color: #ffc857;
+            color: #ffeaac;
+            margin: 0.5rem 0;
+            text-align: center;
+        }
+        .manual-select textarea {
+            background: #1e1b14;
+            border: 1px solid #ffc857;
+            border-radius: 1.2rem;
+            color: #ffeaac;
+            margin: 0.5rem 0;
+            text-align: left;
+            width: 100%;
+            min-height: 70px;
+            padding: 0.8rem 1rem;
+            resize: vertical;
+            font-family: 'Inter', sans-serif;
+        }
+        @media (max-width: 720px) {
+            .top-bar { flex-direction: column; align-items: stretch; gap: 1rem; }
+            #userInfo { justify-content: center; }
+            #bookingsList { grid-template-columns: 1fr; }
+            #completedJobs { grid-template-columns: 1fr; }
+        }
+        @media (min-width: 721px) and (max-width: 1100px) {
+            #bookingsList { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            #completedJobs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <!-- top bar with user & logout & emergency button + city badge -->
+    <div class="top-bar">
+        <div id="userInfo">
+            👤
+            <span>Logged in as:</span>
+            <strong id="userName"></strong>
+            <span id="userEmail" style="font-size:0.95rem; opacity:0.8;"></span>
+            <span id="cityBadge" class="city-badge"><i class="fas fa-map-marker-alt"></i> <span id="userCityText">—</span> <i class="fas fa-chevron-down"></i></span>
+        </div>
+        <div style="display: flex; gap: 1rem;">
+            <button id="emergencyBtn"><i class="fa-solid fa-exclamation-triangle"></i> EMERGENCY MODE</button>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Tabs navigation -->
+    <div class="tabs">
+        <button class="tab-btn active" id="tabServices"><i class="fa-regular fa-grid-2"></i> Services</button>
+        <button class="tab-btn" id="tabWorkers"><i class="fa-solid fa-briefcase"></i> Workers</button>
+        <button class="tab-btn" id="tabBookings"><i class="fa-regular fa-calendar"></i> My Bookings</button>
+        <button class="tab-btn" id="tabCompleted"><i class="fa-solid fa-circle-check"></i> Completed Jobs</button>
+    </div>
+
+    <!-- Tab contents -->
+    <div id="servicesTab" class="tab-content active">
+        <div class="services-grid" id="servicesGrid"></div>
+        <div class="more-btn-container">
+            <button class="more-btn" id="toggleMoreBtn"><i class="fa-regular fa-circle-plus"></i> More Services <i class="fa-regular fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <div id="workersTab" class="tab-content">
+        <div id="filterHint" class="filter-hint"></div>
+        <div id="workersList"></div>
+    </div>
+
+    <div id="bookingsTab" class="tab-content">
+        <div id="bookingsList"></div>
+    </div>
+
+    <div id="completedTab" class="tab-content">
+        <div id="completedJobs"></div>
+    </div>
+</div>
+
+<!-- Emergency Modal (original) -->
+<div id="emergencyModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal">&times;</span>
+        <h2><i class="fa-solid fa-exclamation-triangle"></i> Emergency Service Mode</h2>
+        <div class="modal-price">Normal ₹200 • Emergency ₹600</div>
+        <div class="modal-instructions">
+            <p><i class="fa-solid fa-bolt"></i> Emergency bookings get faster dispatch and priority.</p>
+            <p><i class="fa-solid fa-star"></i> Emergency bookings cost ₹600 total.</p>
+            <p><i class="fa-solid fa-clock"></i> Normal bookings cost ₹200 total.</p>
+        </div>
+        <label class="modal-checkbox">
+            <input type="checkbox" id="emergencyCheckbox"> I understand the emergency service pricing.
+        </label>
+        <div class="modal-actions">
+            <button id="agreeBtn" disabled>Agree & Continue</button>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Neon Gold Location Popup -->
+<div id="locationModal" class="location-modal">
+    <div class="location-modal-content">
+        <div class="location-glow"><i class="fas fa-map-marked-alt"></i></div>
+        <h2>Enable Location Services</h2>
+        <p>Allow access to find the best workers <strong>near your city</strong> and get faster service.</p>
+        <div class="modal-buttons">
+            <button id="allowLocationBtn" class="modal-btn modal-btn-primary"><i class="fas fa-location-dot"></i> Allow Location</button>
+            <button id="manualCityBtn" class="modal-btn modal-btn-secondary"><i class="fas fa-edit"></i> Enter City</button>
+        </div>
+        <div id="manualCityPanel" class="manual-select">
+            <p>Select your city manually:</p>
+            <textarea id="manualCityInput" placeholder="Type your city name (e.g., Mumbai)"></textarea>
+            <select id="manualCitySelect">
+                <option value="">-- Choose City --</option>
+                <option value="Chennai">Chennai</option>
+                <option value="Coimbatore">Coimbatore</option>
+                <option value="Madurai">Madurai</option>
+                <option value="Tiruchirappalli">Tiruchirappalli (Trichy)</option>
+                <option value="Salem">Salem</option>
+                <option value="Tirunelveli">Tirunelveli</option>
+                <option value="Erode">Erode</option>
+                <option value="Vellore">Vellore</option>
+                <option value="Thoothukudi">Thoothukudi</option>
+                <option value="Dindigul">Dindigul</option>
+                <option value="Thanjavur">Thanjavur</option>
+                <option value="Nagercoil">Nagercoil</option>
+                <option value="Karur">Karur</option>
+                <option value="Kanchipuram">Kanchipuram</option>
+                <option value="Cuddalore">Cuddalore</option>
+                <option value="Kumbakonam">Kumbakonam</option>
+            </select>
+            <button id="confirmCityBtn" class="modal-btn modal-btn-primary">Confirm City</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- EMERGENCY MODE TOGGLE (unchanged) ----------
+        const emergencyBtn = document.getElementById('emergencyBtn');
+        const modal = document.getElementById('emergencyModal');
+        const closeModal = document.querySelector('.close-modal');
+        const checkbox = document.getElementById('emergencyCheckbox');
+        const agreeBtn = document.getElementById('agreeBtn');
+
+        if (localStorage.getItem('emergencyMode') === 'true') {
+            document.body.classList.add('emergency-mode');
+            emergencyBtn.innerHTML = '<i class="fa-solid fa-shield"></i> NORMAL MODE';
+        } else {
+            document.body.classList.remove('emergency-mode');
+            emergencyBtn.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> EMERGENCY MODE';
+        }
+
+        emergencyBtn.addEventListener('click', () => {
+            if (document.body.classList.contains('emergency-mode')) {
+                document.body.classList.remove('emergency-mode');
+                emergencyBtn.innerHTML = '<i class="fa-solid fa-exclamation-triangle"></i> EMERGENCY MODE';
+                localStorage.removeItem('emergencyMode');
+                refreshActiveTabView();
+            } else {
+                modal.classList.add('active');
+            }
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+            checkbox.checked = false;
+            agreeBtn.disabled = true;
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+                checkbox.checked = false;
+                agreeBtn.disabled = true;
+            }
+        });
+
+        checkbox.addEventListener('change', () => {
+            agreeBtn.disabled = !checkbox.checked;
+        });
+
+        agreeBtn.addEventListener('click', () => {
+            if (checkbox.checked) {
+                document.body.classList.add('emergency-mode');
+                emergencyBtn.innerHTML = '<i class="fa-solid fa-shield"></i> NORMAL MODE';
+                localStorage.setItem('emergencyMode', 'true');
+                modal.classList.remove('active');
+                checkbox.checked = false;
+                agreeBtn.disabled = true;
+                refreshActiveTabView();
+            }
+        });
+
+        // ---------- AUTH & USER INFO ----------
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api`;
+        })();
+        const userToken = localStorage.getItem('userToken');
+        const authHeaders = () => ({ 'Authorization': `Bearer ${userToken}`, 'Content-Type': 'application/json' });
+
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser || !userToken) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        // ---------- WORKERS DATA (fetched from MongoDB via the API) ----------
+        // `workers` holds whatever the most recent fetch returned (used for city/role
+        // filtering in the Workers tab); `workersCache` accumulates every worker
+        // we've ever looked up by id, so bookings/completed-jobs lookups always
+        // resolve a name even if that worker has since gone offline/changed city.
+        let workers = [];
+        const workersCache = {};
+
+        async function fetchWorkers(params = {}) {
+            const qs = new URLSearchParams(params).toString();
+            try {
+                const res = await fetch(`${API_BASE}/workers${qs ? '?' + qs : ''}`, { headers: authHeaders() });
+                if (!res.ok) return [];
+                const data = await res.json();
+                (data.data || []).forEach(w => { workersCache[w.id] = w; });
+                return data.data || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        async function getWorkerCached(workerId) {
+            if (workersCache[workerId]) return workersCache[workerId];
+            try {
+                const res = await fetch(`${API_BASE}/workers/${workerId}`, { headers: authHeaders() });
+                if (!res.ok) return null;
+                const w = await res.json();
+                workersCache[w.id] = w;
+                return w;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        document.getElementById('userName').innerText = currentUser.name || currentUser.email;
+        document.getElementById('userEmail').innerText = `(${currentUser.email})`;
+
+        // ---------- CITY MANAGEMENT (Neon Gold Popup) ----------
+        let userCity = currentUser.city || null;
+        const cityBadgeSpan = document.getElementById('userCityText');
+        const locationModal = document.getElementById('locationModal');
+        const allowBtn = document.getElementById('allowLocationBtn');
+        const manualBtn = document.getElementById('manualCityBtn');
+        const manualPanel = document.getElementById('manualCityPanel');
+        const confirmCityBtn = document.getElementById('confirmCityBtn');
+        const manualSelect = document.getElementById('manualCitySelect');
+        const manualCityInput = document.getElementById('manualCityInput');
+        let currentServiceFilter = null;
+
+        async function updateCityUI(city) {
+            cityBadgeSpan.innerText = city || '—';
+            userCity = city;
+            if (city) {
+                currentUser.city = city;
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                try {
+                    await fetch(`${API_BASE}/users/me`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ city })
+                    });
+                } catch (e) { /* keep the optimistic local update even if the sync failed */ }
+            }
+            renderWorkersTab(currentServiceFilter);
+        }
+
+        function detectAndStoreCity() {
+            if (!navigator.geolocation) { showManual(); return; }
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                try {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
+                    const data = await res.json();
+                    let city = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality || 'Unknown';
+                    updateCityUI(city);
+                    locationModal.classList.remove('active');
+                } catch (err) { showManual(); }
+            }, (err) => { showManual(); });
+        }
+
+        function showManual() { manualPanel.style.display = 'block'; allowBtn.disabled = true; allowBtn.style.opacity = '0.6'; }
+
+        // Keep location modal actions wired in both first-time and reopen flows.
+        function bindLocationModalActions() {
+            allowBtn.onclick = detectAndStoreCity;
+            manualBtn.onclick = () => { manualPanel.style.display = 'block'; allowBtn.disabled = true; };
+            confirmCityBtn.onclick = () => {
+                const typedCity = (manualCityInput.value || '').trim();
+                const selected = manualSelect.value;
+                const finalCity = typedCity || selected;
+                if (finalCity) {
+                    updateCityUI(finalCity);
+                    locationModal.classList.remove('active');
+                    manualCityInput.value = '';
+                    manualSelect.value = '';
+                } else {
+                    alert('Please type or select a city');
+                }
+            };
+        }
+
+        if (!userCity) {
+            locationModal.classList.add('active');
+            bindLocationModalActions();
+        } else {
+            updateCityUI(userCity);
+            bindLocationModalActions();
+        }
+
+        // Click on city badge to change city (reopen popup)
+        document.getElementById('cityBadge').addEventListener('click', () => {
+            locationModal.classList.add('active');
+            manualPanel.style.display = 'none';
+            allowBtn.disabled = false;
+            allowBtn.style.opacity = '1';
+            bindLocationModalActions();
+        });
+
+        // ---------- SERVICES DATA (unchanged) ----------
+        const services = [
+            { id: 1, name: 'Plumber', icon: 'fa-solid fa-wrench', desc: 'Tap repair, pipe leakage, bathroom fitting.' },
+            { id: 2, name: 'Electrician', icon: 'fa-solid fa-bolt', desc: 'Wiring, switchboard, circuit breaker.' },
+            { id: 3, name: 'AC Mechanic', icon: 'fa-regular fa-snowflake', desc: 'Gas refill, cooling issues, split AC.' },
+            { id: 4, name: 'Bike Mechanic', icon: 'fa-solid fa-motorcycle', desc: 'Engine check, puncture, maintenance.' },
+            { id: 5, name: 'Carpenter', icon: 'fa-solid fa-hammer', desc: 'Furniture repair, door/window fitting.' },
+            { id: 6, name: 'House Cleaning', icon: 'fa-solid fa-broom', desc: 'Deep cleaning, kitchen & bathroom.' },
+            { id: 7, name: 'Painter', icon: 'fa-solid fa-paint-roller', desc: 'Wall painting, texture, putty.' },
+            { id: 8, name: 'Refrigerator Repair', icon: 'fa-solid fa-temperature-low', desc: 'Cooling issues, gas leak.' },
+            { id: 9, name: 'Washing Machine Repair', icon: 'fa-solid fa-soap', desc: 'Not spinning, leakage, drain.' },
+            { id: 10, name: 'RO Water Purifier', icon: 'fa-solid fa-droplet', desc: 'Filter change, tank cleaning.' },
+            { id: 11, name: 'Tutor', icon: 'fa-solid fa-chalkboard-user', desc: 'Home tutoring for all subjects.' },
+            { id: 12, name: 'Chef', icon: 'fa-solid fa-utensils', desc: 'Private chef for events or daily meals.' },
+            { id: 13, name: 'Gardener', icon: 'fa-solid fa-leaf', desc: 'Lawn mowing, plant care, landscaping.' },
+            { id: 14, name: 'Acting Driver', icon: 'fa-solid fa-car', desc: 'Professional driver for your vehicle.' },
+            { id: 15, name: 'Masseur', icon: 'fa-solid fa-hand-sparkles', desc: 'Therapeutic massage at home.' },
+            { id: 16, name: 'Beautician', icon: 'fa-solid fa-spa', desc: 'Salon services: facial, waxing, makeup.' },
+            { id: 17, name: 'Delivery Partner', icon: 'fa-solid fa-truck', desc: 'Parcel pickup and dropoff.' },
+            { id: 18, name: 'Load Man', icon: 'fa-solid fa-dolly', desc: 'Loading/unloading, shifting help.' }
+        ];
+
+        // ---------- TAB SWITCHING (unchanged) ----------
+        const tabServices = document.getElementById('tabServices');
+        const tabWorkers = document.getElementById('tabWorkers');
+        const tabBookings = document.getElementById('tabBookings');
+        const tabCompleted = document.getElementById('tabCompleted');
+        const servicesTab = document.getElementById('servicesTab');
+        const workersTab = document.getElementById('workersTab');
+        const bookingsTab = document.getElementById('bookingsTab');
+        const completedTab = document.getElementById('completedTab');
+
+        function setActiveTab(tabId) {
+            [tabServices, tabWorkers, tabBookings, tabCompleted].forEach(btn => btn.classList.remove('active'));
+            [servicesTab, workersTab, bookingsTab, completedTab].forEach(tab => tab.classList.remove('active'));
+            if (tabId === 'services') { tabServices.classList.add('active'); servicesTab.classList.add('active'); renderServicesTab(); }
+            else if (tabId === 'workers') { tabWorkers.classList.add('active'); workersTab.classList.add('active'); renderWorkersTab(currentServiceFilter); }
+            else if (tabId === 'bookings') { tabBookings.classList.add('active'); bookingsTab.classList.add('active'); renderBookingsTab(); }
+            else if (tabId === 'completed') { tabCompleted.classList.add('active'); completedTab.classList.add('active'); renderCompletedJobs(); }
+        }
+
+        function refreshActiveTabView() {
+            if (tabServices.classList.contains('active')) renderServicesTab();
+            if (tabWorkers.classList.contains('active')) renderWorkersTab(currentServiceFilter);
+            if (tabBookings.classList.contains('active')) renderBookingsTab();
+            if (tabCompleted.classList.contains('active')) renderCompletedJobs();
+        }
+
+        tabServices.addEventListener('click', () => setActiveTab('services'));
+        tabWorkers.addEventListener('click', () => setActiveTab('workers'));
+        tabBookings.addEventListener('click', () => setActiveTab('bookings'));
+        tabCompleted.addEventListener('click', () => setActiveTab('completed'));
+
+        // ---------- SERVICES TAB RENDERING (unchanged) ----------
+        function renderServicesTab() {
+            const grid = document.getElementById('servicesGrid');
+            grid.innerHTML = '';
+            services.forEach((s, idx) => {
+                const card = document.createElement('div');
+                card.className = 'service-card';
+                if (idx >= 8) {
+                    card.classList.add('extra-service');
+                    if (!showingAll) card.classList.add('hidden-service');
+                }
+                card.innerHTML = `
+                    <div class="icon-wrapper"><i class="${s.icon}"></i></div>
+                    <div class="service-name">${s.name}</div>
+                    <div class="service-desc">${s.desc}</div>
+                    <button class="book-now-btn" data-service="${s.name}"><i class="fa-regular fa-calendar-plus"></i> Book Now</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        let showingAll = false;
+        document.getElementById('toggleMoreBtn').addEventListener('click', () => {
+            showingAll = !showingAll;
+            document.querySelectorAll('.extra-service').forEach(c => c.classList.toggle('hidden-service', !showingAll));
+            const btn = document.getElementById('toggleMoreBtn');
+            btn.innerHTML = showingAll ?
+                '<i class="fa-regular fa-circle-minus"></i> Show fewer services <i class="fa-regular fa-arrow-up"></i>' :
+                '<i class="fa-regular fa-circle-plus"></i> More Services <i class="fa-regular fa-arrow-right"></i>';
+        });
+
+        // ---------- WORKERS FILTER (City + Availability) ----------
+        async function renderWorkersTab(roleFilter = null) {
+            const workersDiv = document.getElementById('workersList');
+            const filterHint = document.getElementById('filterHint');
+            const isEmergencyMode = localStorage.getItem('emergencyMode') === 'true';
+
+            workersDiv.innerHTML = '<p style="padding:1rem;">Loading available workers…</p>';
+
+            const params = { availability: 'true' };
+            if (userCity && userCity !== 'Unknown') params.city = userCity;
+            let filtered = await fetchWorkers(params);
+            workers = filtered;
+
+            if (roleFilter) {
+                const lowerRole = roleFilter.trim().toLowerCase();
+                filtered = filtered.filter(w => (w.role || '').toLowerCase().includes(lowerRole));
+                filterHint.innerHTML = `Showing available workers in <strong>${userCity || 'your city'}</strong> for <strong>${roleFilter}</strong> <span class="clear-filter" id="clearFilter">✕ clear filter</span>`;
+            } else {
+                filterHint.innerHTML = `Showing available workers in <strong>${userCity || 'your city'}</strong> (ONLINE & SAME CITY) <span class="clear-filter" id="clearAllFilter">✕ reset</span>`;
+            }
+            if (filtered.length === 0) {
+                workersDiv.innerHTML = '<p style="padding:1rem;">😞 No available workers found in your city. Try changing city or later.</p>';
+                return;
+            }
+            workersDiv.innerHTML = filtered.map(w => `
+                <div class="worker-card">
+                    <strong>${w.name || w.email}</strong> - ${w.role || 'Worker'} (${w.experience || 0} yrs)
+                    <span class="availability-badge"><i class="fas fa-circle"></i> Available</span><br>
+                    📍 ${w.city || 'Unknown'} · Rate: ₹${isEmergencyMode ? 600 : (w.rate || 200)}/hr<br>
+                    <a href="booking-form.html?workerId=${w.id}" class="btn">Book</a>
+                </div>
+            `).join('');
+            const clearEl = document.getElementById('clearFilter') || document.getElementById('clearAllFilter');
+            if (clearEl) clearEl.addEventListener('click', () => { currentServiceFilter = null; renderWorkersTab(); });
+        }
+
+        // Handle service "Book Now" clicks – switch to workers tab and filter
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.book-now-btn');
+            if (!btn) return;
+            const serviceName = btn.dataset.service;
+            if (serviceName) {
+                currentServiceFilter = serviceName;
+                setActiveTab('workers');
+            }
+        });
+
+        // ---------- MY BOOKINGS TAB RENDERING (preserved exactly) ----------
+        async function renderBookingsTab() {
+            const bookingsDiv = document.getElementById('bookingsList');
+            bookingsDiv.innerHTML = '<p>Loading your bookings…</p>';
+            let bookings = [];
+            try {
+                const res = await fetch(`${API_BASE}/bookings?limit=100&sort=createdAt:desc`, { headers: authHeaders() });
+                if (res.ok) bookings = (await res.json()).data || [];
+            } catch (e) { /* fall through to empty state below */ }
+
+            if (bookings.length === 0) { bookingsDiv.innerHTML = '<p>No bookings yet.</p>'; return; }
+
+            await Promise.all(bookings.map(b => getWorkerCached(b.workerId)));
+
+            bookingsDiv.innerHTML = bookings.map(b => {
+                const worker = workersCache[b.workerId];
+                let statusClass = '', statusIcon = '';
+                if (b.status === 'pending') { statusClass = 'badge-priority-pending'; statusIcon = '⏳'; }
+                else if (b.status === 'accepted') { statusClass = 'badge-priority-accepted'; statusIcon = '✅'; }
+                else if (b.status === 'rejected') { statusClass = 'badge-cancelled'; statusIcon = '❌'; }
+                else if (b.status === 'cancelled_by_user') { statusClass = 'badge-cancelled'; statusIcon = '🚫'; }
+                else if (b.status === 'completed') { statusClass = 'badge-priority-completed'; statusIcon = '✔️'; }
+                else if (b.status === 'in_progress' || b.status === 'on_the_way' || b.status === 'near' || b.status === 'arrived') {
+                    statusClass = 'badge-priority-accepted'; statusIcon = '🔧';
+                } else { statusClass = 'badge-pending'; statusIcon = '⏳'; }
+                let trackButton = (b.status === 'accepted' || b.status === 'on_the_way' || b.status === 'near' || b.status === 'arrived') ? `<a href="track.html?bookingId=${b.id}"><button><i class="fa-solid fa-location-dot"></i> Track</button></a>` : '';
+                let otpHtml = '';
+                let cancelButton = (b.status === 'pending') ? `<button class="cancel-btn" data-bookingid="${b.id}"><i class="fa-solid fa-ban"></i> Cancel Booking</button>` : '';
+                return `<div class="booking-card" id="booking-${b.id}"><strong>ID:</strong> ${b.id}<br><strong>Worker:</strong> ${worker ? worker.name : b.workerId}<br><strong>Status:</strong> <span class="badge ${statusClass}">${statusIcon} ${b.status}</span><br>${otpHtml}${trackButton}${cancelButton}</div>`;
+            }).join('');
+            document.querySelectorAll('.cancel-btn').forEach(btn => btn.addEventListener('click', async function(e) {
+                const bookingId = this.dataset.bookingid;
+                if (confirm('Cancel this booking?')) {
+                    try {
+                        const res = await fetch(`${API_BASE}/bookings/${bookingId}/cancel`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ reason: 'Cancelled by user' })
+                        });
+                        if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.message || 'Cannot cancel now.'); return; }
+                        renderBookingsTab();
+                    } catch (err) {
+                        alert('Could not reach the server. Please try again.');
+                    }
+                }
+            }));
+        }
+
+        // ---------- COMPLETED JOBS TAB RENDERING ----------
+        async function renderCompletedJobs() {
+            const completedDiv = document.getElementById('completedJobs');
+            completedDiv.innerHTML = '<p style="padding:1rem;">Loading…</p>';
+
+            let bookings = [];
+            let feedbacks = [];
+            try {
+                const [bRes, fRes] = await Promise.all([
+                    fetch(`${API_BASE}/bookings?status=completed&limit=100`, { headers: authHeaders() }),
+                    fetch(`${API_BASE}/feedback?limit=200`, { headers: authHeaders() })
+                ]);
+                if (bRes.ok) bookings = (await bRes.json()).data || [];
+                if (fRes.ok) feedbacks = (await fRes.json()).data || [];
+            } catch (e) { /* fall through to empty state below */ }
+
+            const completedBookings = bookings; // already filtered server-side by status=completed
+            if (completedBookings.length === 0) { completedDiv.innerHTML = '<p style="padding:1rem;">No completed jobs yet.</p>'; return; }
+
+            await Promise.all(completedBookings.map(b => getWorkerCached(b.workerId)));
+
+            // Fetch this user's payment record for each completed booking.
+            const paymentsByBooking = {};
+            await Promise.all(completedBookings.map(async (b) => {
+                try {
+                    const res = await fetch(`${API_BASE}/payments-data?bookingId=${b.id}&limit=1`, { headers: authHeaders() });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.data && data.data[0]) paymentsByBooking[b.id] = data.data[0];
+                    }
+                } catch (e) { /* no payment record found */ }
+            }));
+
+            completedDiv.innerHTML = completedBookings.map(b => {
+                const worker = workersCache[b.workerId];
+                const payment = paymentsByBooking[b.id];
+                const alreadyFeedback = feedbacks.some(f => f.bookingId === b.id);
+                let actionsHtml = '';
+                if (payment) {
+                    if (payment.status === 'pending') actionsHtml += `<div><p><strong>Payment required:</strong> ₹${payment.amount}</p><button class="pay-btn" data-paymentid="${payment.id}" data-bookingid="${b.id}">💰 Pay Now</button></div>`;
+                    else if (payment.status === 'paid_by_user') actionsHtml += `<p><span class="badge badge-paid">Payment completed (awaiting admin release)</span></p>`;
+                    else if (payment.status === 'approved') actionsHtml += `<p><span class="badge badge-paid">Payment released to worker</span></p>`;
+                } else actionsHtml += `<p>No payment record found.</p>`;
+                if (!alreadyFeedback) actionsHtml += `<div class="feedback-form"><select id="rating-${b.id}"><option value="5">5 - Excellent</option><option value="4">4 - Good</option><option value="3">3 - Average</option><option value="2">2 - Poor</option><option value="1">1 - Terrible</option></select><textarea id="comment-${b.id}" placeholder="Write your feedback"></textarea><button class="feedback-btn" data-bookingid="${b.id}">⭐ Submit Feedback</button></div>`;
+                else actionsHtml += `<p><span class="badge badge-completed">Feedback already submitted</span></p>`;
+                return `<div class="booking-card"><strong>Job ID:</strong> ${b.id}<br><strong>Worker:</strong> ${worker ? worker.name : b.workerId} ${worker ? '(' + worker.role + ')' : ''}<br><strong>Completed on:</strong> ${b.updatedAt ? new Date(b.updatedAt).toLocaleDateString() : 'recently'}<br>${actionsHtml}</div>`;
+            }).join('');
+            document.querySelectorAll('.pay-btn').forEach(btn => btn.addEventListener('click', async function() {
+                const paymentId = this.dataset.paymentid;
+                try {
+                    const res = await fetch(`${API_BASE}/payments-data/${paymentId}/status`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ status: 'paid_by_user' })
+                    });
+                    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.message || 'Payment already processed.'); return; }
+                    alert('Payment successful! Waiting for admin release.');
+                    renderCompletedJobs();
+                    renderBookingsTab();
+                } catch (err) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            }));
+            document.querySelectorAll('.feedback-btn').forEach(btn => btn.addEventListener('click', async function() {
+                const bookingId = this.dataset.bookingid;
+                const rating = document.getElementById(`rating-${bookingId}`).value;
+                const comment = document.getElementById(`comment-${bookingId}`).value;
+                try {
+                    const res = await fetch(`${API_BASE}/feedback`, {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ bookingId, rating: parseInt(rating), comment })
+                    });
+                    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.message || 'Feedback already given'); return; }
+                    alert('Thank you for your feedback!');
+                    renderCompletedJobs();
+                } catch (err) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            }));
+        }
+
+        // ---------- INITIAL RENDER ----------
+        renderServicesTab();
+        renderWorkersTab();
+        renderBookingsTab();
+        renderCompletedJobs();
+
+        // ---------- GLOBAL FUNCTIONS ----------
+        window.logout = function() {
+            localStorage.removeItem('currentUser');
+            localStorage.removeItem('userToken');
+            localStorage.removeItem('userRefreshToken');
+            window.location.href = '../index.html';
+        };
+    })();
+</script>
+</body>
+</html>
