@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Golden Ledger · Worker Earnings | Glass Gold Edition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #1a1308, #0c0a05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 20px;
+            position: relative;
+        }
+
+        /* Gold dust overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><path fill="rgba(251,191,36,0.08)" d="M80 30 L90 45 L107 45 L95 58 L100 75 L80 64 L60 75 L65 58 L53 45 L70 45 Z M150 110 L155 120 L165 120 L158 128 L160 138 L150 132 L140 138 L142 128 L135 120 L145 120 Z M30 140 L34 148 L42 148 L36 154 L38 162 L30 157 L22 162 L24 154 L18 148 L26 148 Z"/></svg>');
+            background-repeat: repeat;
+            background-size: 45px;
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* Glass gold container */
+        .dashboard-container {
+            max-width: 1300px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            z-index: 2;
+            backdrop-filter: blur(0px);
+        }
+
+        /* Glassmorphic header */
+        .gold-glass {
+            background: rgba(20, 15, 8, 0.55);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            border-radius: 64px;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.5), 0 0 0 1px rgba(251,191,36,0.2) inset, 0 0 30px rgba(251,191,36,0.3);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 16px 32px;
+            transition: all 0.2s;
+        }
+
+        header h1 {
+            font-size: 2.3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fde68a, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            letter-spacing: -0.3px;
+        }
+
+        .logout-btn {
+            background: rgba(251, 191, 36, 0.15);
+            border: 1.5px solid #fbbf24;
+            color: #fde68a;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 0 12px rgba(251,191,36,0.3);
+        }
+
+        .logout-btn:hover {
+            background: #fbbf24;
+            color: #0a0804;
+            box-shadow: 0 0 28px #fbbf24, 0 4px 10px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+            border-color: #fff0c0;
+        }
+
+        /* Stats Grid with glass effect */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(22, 18, 12, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 28px 20px;
+            border: 1px solid rgba(251, 191, 36, 0.6);
+            box-shadow: 0 20px 35px -15px rgba(0,0,0,0.6), 0 0 0 1px rgba(251,191,36,0.2) inset, 0 0 20px rgba(251,191,36,0.2);
+            text-align: center;
+            transition: all 0.25s;
+        }
+
+        .stat-card:hover {
+            border-color: #fbbf24;
+            box-shadow: 0 0 28px rgba(251,191,36,0.5);
+            transform: translateY(-4px);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #fcd34d;
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-shadow: 0 0 5px #fbbf24;
+        }
+
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(145deg, #ffea9e, #fbbf24);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 12px rgba(251,191,36,0.8);
+        }
+
+        .stat-unit {
+            font-size: 1.2rem;
+            color: #fbbf24;
+            font-weight: 500;
+        }
+
+        /* Action Panel */
+        .action-panel {
+            background: rgba(28, 22, 15, 0.65);
+            backdrop-filter: blur(14px);
+            border-radius: 48px;
+            padding: 28px 36px;
+            margin: 40px 0;
+            border: 1px solid rgba(251, 191, 36, 0.7);
+            box-shadow: 0 15px 35px -10px #00000080, 0 0 0 1px rgba(251,191,36,0.3) inset;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .action-panel h3 {
+            font-size: 1.7rem;
+            font-weight: 500;
+            color: #fde68a;
+            text-shadow: 0 2px 5px #b45309;
+            letter-spacing: -0.3px;
+        }
+
+        .request-btn {
+            background: linear-gradient(145deg, #fbbf24, #e09d1a);
+            border: none;
+            color: #0f0b03;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 16px 42px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #7b4b1a, 0 10px 25px rgba(251,191,36,0.5);
+            transition: 0.08s linear;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border: 1px solid #ffefb0;
+        }
+
+        .request-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #7b4b1a, 0 18px 30px #fbbf24;
+            background: linear-gradient(145deg, #fcd34d, #fbbf24);
+        }
+
+        .request-btn:disabled {
+            background: #7a6a4a;
+            box-shadow: 0 5px 0 #4f3e22;
+            transform: none;
+            cursor: not-allowed;
+            color: #2c2418;
+            border-color: #dbb45c;
+        }
+
+        /* History Card - premium glass */
+        .history-card {
+            background: rgba(20, 16, 10, 0.55);
+            backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 28px 24px;
+            border: 1px solid rgba(251, 191, 36, 0.6);
+            box-shadow: 0 25px 40px -12px black, 0 0 0 1px rgba(251,191,36,0.25) inset;
+        }
+
+        .history-card h2 {
+            font-size: 1.9rem;
+            font-weight: 500;
+            margin-bottom: 25px;
+            border-left: 8px solid #fbbf24;
+            padding-left: 24px;
+            color: #ffeaaf;
+            text-shadow: 0 0 6px #fbbf24;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 32px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(251, 191, 36, 0.4);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #fff3e0;
+        }
+
+        th {
+            background: rgba(251, 191, 36, 0.18);
+            color: #ffdfa5;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 18px 12px;
+            font-size: 0.8rem;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid #fbbf24;
+            backdrop-filter: blur(4px);
+        }
+
+        td {
+            padding: 16px 12px;
+            border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+            background: rgba(30, 24, 18, 0.5);
+        }
+
+        tr:hover td {
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 16px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 0.3px;
+            background: #2a241c;
+            color: #fbbf24;
+            border: 1px solid #fbbf24;
+            box-shadow: 0 0 6px #fbbf24;
+        }
+
+        .badge-approved {
+            background: #0f3b2a;
+            color: #b0ffcc;
+            border-color: #2ecc71;
+            box-shadow: 0 0 8px #2ecc71;
+        }
+
+        .badge-paid_by_user {
+            background: #143b5e;
+            color: #9fcbff;
+            border-color: #3b82f6;
+            box-shadow: 0 0 8px #3b82f6;
+        }
+
+        .badge-pending {
+            background: #4a3a1e;
+            color: #ffd966;
+            border-color: #f59e0b;
+        }
+
+        .badge-emergency {
+            background: #4a1515;
+            color: #ffb3b3;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 8px #ff4d4d;
+            font-weight: 700;
+        }
+
+        .badge-normal {
+            background: #2f2a1f;
+            color: #fde68a;
+            border-color: #fbbf24;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 40px;
+            color: #d4bc8a;
+            font-style: italic;
+            font-size: 1.1rem;
+        }
+
+        .footer-timestamp {
+            margin-top: 35px;
+            text-align: right;
+            color: #fbbf24aa;
+            font-size: 0.8rem;
+            border-top: 1px dashed #fbbf2450;
+            padding-top: 20px;
+            backdrop-filter: blur(4px);
+        }
+
+        .gold-reflect {
+            text-shadow: 0 0 6px rgba(251,191,36,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="gold-glass">
+            <h1>💰 GOLDEN LEDGER · ELITE WORKER</h1>
+            <button class="logout-btn" id="logoutBtn">✦ SIGN OUT ✦</button>
+        </header>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">TOTAL APPROVED (RELEASED)</div>
+                <div class="stat-value" id="totalApproved">₹0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">PENDING RELEASE (USER PAID)</div>
+                <div class="stat-value" id="pendingRelease">₹0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">TOTAL EARNED (ALL TIME)</div>
+                <div class="stat-value" id="totalEarned">₹0</div>
+            </div>
+        </div>
+
+        <!-- Payout Request Panel -->
+        <div class="action-panel" id="payoutPanel">
+            <h3>💸 REQUEST PAYOUT · PENDING BALANCE</h3>
+            <button class="request-btn" id="requestPayoutBtn">📤 REQUEST PAYOUT</button>
+        </div>
+
+        <!-- Payment History with Mode & Date -->
+        <div class="history-card">
+            <h2>📜 PAYMENT HISTORY · SURCHARGE INCLUDED</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Booking</th>
+                            <th>Mode</th>
+                            <th>Amount (₹)</th>
+                            <th>Status</th>
+                            <th>Transaction Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="paymentsHistory"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="footer-timestamp" id="liveTimestamp">
+            ✨ Last refresh: <span id="refreshTime"></span> · Normal ₹200 · Emergency ₹600 · Glass Gold Edition
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            // ======================= AUTHENTICATION =======================
+            const currentWorker = JSON.parse(localStorage.getItem('currentWorker'));
+            const workerToken = localStorage.getItem('workerToken');
+            if (!currentWorker || !workerToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (function() {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api`;
+            })();
+            const authHeaders = () => ({ 'Authorization': `Bearer ${workerToken}`, 'Content-Type': 'application/json' });
+            const workerId = currentWorker.id;
+
+            // Helper to format date beautifully
+            function formatDateTime(isoString) {
+                if (!isoString) return '—';
+                try {
+                    const date = new Date(isoString);
+                    return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                } catch(e) {
+                    return isoString.slice(0, 10);
+                }
+            }
+
+            const bookingEmergencyCache = {};
+            async function isEmergencyBooking(bookingId) {
+                if (bookingEmergencyCache[bookingId] !== undefined) return bookingEmergencyCache[bookingId];
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${bookingId}`, { headers: authHeaders() });
+                    if (!res.ok) { bookingEmergencyCache[bookingId] = false; return false; }
+                    const b = await res.json();
+                    bookingEmergencyCache[bookingId] = b.emergency === true;
+                } catch (e) {
+                    bookingEmergencyCache[bookingId] = false;
+                }
+                return bookingEmergencyCache[bookingId];
+            }
+
+            // Refresh UI based on fresh data
+            async function renderEarningsAndHistory() {
+                let payments = [];
+                try {
+                    const res = await fetch(`${API_BASE}/payments-data?limit=200&sort=createdAt:desc`, { headers: authHeaders() });
+                    if (res.ok) payments = (await res.json()).data || [];
+                } catch (e) { /* fall through to empty state below */ }
+
+                let totalApproved = 0;
+                let pendingRelease = 0;
+                let totalEarned = 0;
+
+                payments.forEach(p => {
+                    const amount = Number(p.amount) || 0;
+                    if (p.status === 'approved') {
+                        totalApproved += amount;
+                        totalEarned += amount;
+                    } else if (p.status === 'paid_by_user') {
+                        pendingRelease += amount;
+                        totalEarned += amount;
+                    }
+                });
+
+                // Update stats with glass effect numbers
+                document.getElementById('totalApproved').innerHTML = `₹${totalApproved}`;
+                document.getElementById('pendingRelease').innerHTML = `₹${pendingRelease}`;
+                document.getElementById('totalEarned').innerHTML = `₹${totalEarned}`;
+
+                // Handle payout request button state
+                let payoutRequests = [];
+                try {
+                    const res = await fetch(`${API_BASE}/payouts?status=pending&limit=5`, { headers: authHeaders() });
+                    if (res.ok) payoutRequests = (await res.json()).data || [];
+                } catch (e) { /* treat as no pending request */ }
+                const requestBtn = document.getElementById('requestPayoutBtn');
+                if (payoutRequests.length > 0) {
+                    requestBtn.disabled = true;
+                    requestBtn.innerText = '⏳ REQUEST PENDING';
+                } else {
+                    requestBtn.disabled = false;
+                    requestBtn.innerText = '📤 REQUEST PAYOUT';
+                }
+
+                // Build payment history table with exact mode and date
+                const tbody = document.getElementById('paymentsHistory');
+                if (payments.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">✨ No payment records yet — complete jobs to see gold flow</td></tr>';
+                    return;
+                }
+
+                // Sort payments by createdAt descending (newest first) -- API already
+                // sorts this way, but keep the explicit sort in case of ties.
+                payments.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+                const rows = await Promise.all(payments.map(async (p) => {
+                    const emergency = await isEmergencyBooking(p.bookingId);
+                    const modeClass = emergency ? 'badge-emergency' : 'badge-normal';
+                    const modeText = emergency ? '🚨 EMERGENCY (₹600)' : '⚡ NORMAL (₹200)';
+
+                    let statusClass = 'badge';
+                    let statusText = p.status;
+                    if (p.status === 'approved') statusClass += ' badge-approved';
+                    else if (p.status === 'paid_by_user') statusClass += ' badge-paid_by_user';
+                    else if (p.status === 'pending') statusClass += ' badge-pending';
+
+                    const displayAmount = Number(p.amount).toLocaleString('en-IN');
+                    const transactionDate = p.createdAt ? formatDateTime(p.createdAt) : (p.updatedAt ? formatDateTime(p.updatedAt) : '—');
+
+                    return `
+                        <tr>
+                            <td>${p.id || 'N/A'}</td>
+                            <td>#${p.bookingId}</td>
+                            <td><span class="badge ${modeClass}">${modeText}</span></td>
+                            <td><strong style="color:#fde68a; font-size:1.1rem;">₹${displayAmount}</strong></td>
+                            <td><span class="${statusClass}">${statusText.replace(/_/g, ' ')}</span></td>
+                            <td><span class="gold-reflect">${transactionDate}</span></td>
+                        </tr>
+                    `;
+                }));
+                tbody.innerHTML = rows.join('');
+            }
+
+            // Initial render
+            renderEarningsAndHistory();
+
+            // Refresh timestamp dynamic
+            function updateTimestamp() {
+                const now = new Date();
+                const formatted = now.toLocaleString('en-IN', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const refreshSpan = document.getElementById('refreshTime');
+                if (refreshSpan) refreshSpan.innerText = formatted;
+            }
+            updateTimestamp();
+            setInterval(updateTimestamp, 1000);
+
+            // Payout request logic -- amount is computed authoritatively server-side
+            // from paid_by_user payments, so we just call the endpoint.
+            document.getElementById('requestPayoutBtn').addEventListener('click', async function() {
+                try {
+                    const res = await fetch(`${API_BASE}/payouts`, { method: 'POST', headers: authHeaders() });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        alert(data.message || '✨ No pending funds available for payout. Complete more jobs and wait for user payment.');
+                        return;
+                    }
+                    alert(`✅ Payout request of ₹${data.amount} submitted to Special Admin. You'll be notified once released.`);
+                    const btn = document.getElementById('requestPayoutBtn');
+                    btn.disabled = true;
+                    btn.innerText = '⏳ REQUEST PENDING';
+                } catch (err) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            });
+
+            // Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('currentWorker');
+                localStorage.removeItem('workerToken');
+                localStorage.removeItem('workerRefreshToken');
+                window.location.href = '../index.html';
+            });
+
+            // Auto-refresh data every 15 sec to reflect new payments (in case admin releases)
+            setInterval(() => {
+                renderEarningsAndHistory();
+                updateTimestamp();
+            }, 15000);
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Golden Elite · Worker Vault | WhatsApp Style Actions</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', 'Roboto', system-ui, sans-serif;
+        }
+
+        body {
+            background: #0b0a07;
+            color: #f0e7d9;
+            padding: 28px 30px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: 
+                repeating-linear-gradient(45deg, rgba(251, 191, 36, 0.02) 0px, rgba(251, 191, 36, 0.02) 3px, transparent 3px, transparent 10px),
+                radial-gradient(circle at 80% 20%, rgba(251, 191, 36, 0.08) 0%, transparent 40%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Smooth transitions global */
+        button, .city-badge, .toggle-btn, .job-actions button, .job-actions a, .elite-btn {
+            transition: all 0.25s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 34px;
+            background: #13110d;
+            border: 1px solid #fbbf24;
+            border-radius: 60px;
+            box-shadow: 0 20px 30px -12px #fbbf2440, 0 0 0 1px #fcd34d inset, 0 0 18px #fbbf2460;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            background: linear-gradient(145deg, #fde68a, #fbbf24, #f59e0b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 16px #fbbf24, 0 2px 4px #00000050;
+            letter-spacing: -0.5px;
+        }
+
+        .header .badge {
+            background: #fbbf24;
+            color: #0a0804;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            border: 1px solid #ffdb9d;
+            box-shadow: 0 0 16px #fbbf24, 0 4px 0 #b45309;
+        }
+
+        .worker-controls {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(0,0,0,0.4);
+            padding: 6px 16px 6px 24px;
+            border-radius: 60px;
+            backdrop-filter: blur(8px);
+            border: 1px solid #fbbf2450;
+        }
+
+        /* City badge - WhatsApp style light green */
+        .city-badge {
+            background: linear-gradient(145deg, #25D366, #128C7E);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 60px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.95rem;
+            letter-spacing: 0.5px;
+            border: none;
+            box-shadow: 0 6px 0 #0a4b3a, 0 4px 16px rgba(37, 211, 102, 0.3);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .city-badge:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #0a4b3a, 0 8px 24px #25D36680;
+            background: linear-gradient(145deg, #31da72, #17a074);
+        }
+        .city-badge:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #0a4b3a;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1f1c16;
+            padding: 3px 16px 3px 20px;
+            border-radius: 60px;
+            border: 1px solid #fbbf2480;
+        }
+        .toggle-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #c9a76b;
+            letter-spacing: 1px;
+        }
+        .toggle-btn {
+            background: linear-gradient(145deg, #2c2a24, #1f1c17);
+            border: none;
+            color: #f0e7d9;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            cursor: pointer;
+            box-shadow: inset 0 1px 0 #ffffff20, 0 3px 0 #0a0804;
+            text-transform: uppercase;
+            width: 70px;
+            text-align: center;
+        }
+        .toggle-btn.active {
+            background: linear-gradient(145deg, #fbbf24, #f59e0b);
+            color: #0b0a07;
+            box-shadow: 0 0 12px #fbbf24, inset 0 1px 0 #ffeeaa;
+        }
+        .toggle-btn.inactive {
+            background: #3a2e1f;
+            color: #ffdb9d80;
+        }
+        .logout-btn {
+            background: transparent;
+            border: 2px solid #fbbf24;
+            color: #fcd34d;
+            padding: 8px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            text-transform: uppercase;
+            backdrop-filter: blur(4px);
+        }
+        .logout-btn:hover {
+            background: #fbbf24;
+            color: #0a0804;
+            box-shadow: 0 0 30px #fbbf24, 0 6px 0 #b45309;
+            transform: translateY(-2px);
+        }
+
+        .worker-info {
+            background: #15120d;
+            border-left: 6px solid #fbbf24;
+            padding: 18px 28px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 18px #00000060, 0 0 0 1px #fbbf2440;
+        }
+        .worker-info p {
+            font-size: 1.25rem;
+            color: #e7d6bb;
+        }
+        .worker-info strong {
+            color: #fcd34d;
+            font-weight: 700;
+            text-shadow: 0 0 5px #fbbf24;
+        }
+
+        /* Earnings panel buttons now WhatsApp green */
+        .earnings-panel {
+            background: #15120d;
+            border: 1px solid #fbbf24;
+            border-radius: 48px;
+            padding: 32px 38px;
+            margin-bottom: 50px;
+            box-shadow: 0 25px 35px -14px #fbbf2480, inset 0 0 30px #fbbf2420, 0 0 0 1px #fcd34d inset;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .earnings-stats {
+            display: flex;
+            gap: 50px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            text-align: left;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 2.5px;
+            color: #c9a76b;
+            margin-bottom: 8px;
+        }
+        .stat-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #fde68a;
+            text-shadow: 0 0 25px #fbbf24, 2px 2px 0 #92400e;
+            line-height: 1.2;
+        }
+        .elite-btn {
+            background: linear-gradient(145deg, #25D366, #128C7E);
+            border: none;
+            color: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 15px 38px;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #0a4b3a, 0 12px 28px rgba(37, 211, 102, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.2s ease;
+        }
+        .elite-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 11px 0 #0a4b3a, 0 20px 35px #25D36680;
+            background: linear-gradient(145deg, #31da72, #17a074);
+        }
+        .elite-btn.secondary {
+            background: #201d17;
+            color: #fde68a;
+            box-shadow: 0 7px 0 #7b571e;
+            border: 1px solid #fbbf24;
+        }
+        .elite-btn.secondary:hover {
+            background: #2f2a1f;
+            box-shadow: 0 9px 0 #7b571e;
+            transform: translateY(-2px);
+        }
+
+        .section-title {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 45px 0 25px 0;
+            border-left: 8px solid #fbbf24;
+            padding-left: 20px;
+            color: #fdebb3;
+            text-shadow: 0 0 8px #fbbf24;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: 28px;
+            margin-bottom: 30px;
+        }
+
+        .job-card {
+            background: #15120d;
+            border: 1px solid #fbbf2460;
+            border-radius: 32px;
+            padding: 26px;
+            box-shadow: 0 16px 28px -12px #000000e0, 0 0 0 1px #fbbf2420 inset;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+            position: relative;
+        }
+        .job-card:hover {
+            transform: scale(1.02) translateY(-5px);
+            border-color: #fbbf24;
+            box-shadow: 0 28px 38px -12px #fbbf24, 0 0 0 1px #fde68a inset;
+        }
+        .job-card.emergency-card {
+            border-color: #ff4d4d !important;
+            box-shadow: 0 0 30px #ff000080, 0 0 0 2px #ff6666 inset !important;
+            background: #2b0f0f;
+        }
+        .emergency-badge {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            background: #ff4d4d;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            border: 1px solid #ffb3b3;
+            box-shadow: 0 0 15px #ff0000;
+            animation: pulseRed 1s infinite;
+        }
+        @keyframes pulseRed {
+            0% { box-shadow: 0 0 10px #ff0000; }
+            50% { box-shadow: 0 0 20px #ff4d4d; }
+            100% { box-shadow: 0 0 10px #ff0000; }
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            background: #2b241b;
+            color: #fbbf24;
+            border: 1px solid #fbbf24;
+        }
+
+        .payment-status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            background: #1e2a1a;
+            color: #b3ffa7;
+            border: 1px solid #66ff66;
+        }
+
+        .timer {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #fbbf24;
+            margin: 10px 0;
+            text-shadow: 0 0 8px currentColor;
+        }
+        .timer.warning {
+            color: #ffb86b;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Job action buttons - WhatsApp green theme */
+        .job-actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .job-actions button, .job-actions a {
+            background: #25D366;
+            color: white;
+            border: none;
+            padding: 10px 26px;
+            border-radius: 36px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #128C7E;
+            text-transform: uppercase;
+        }
+        .job-actions button:hover, .job-actions a:hover {
+            background: #31da72;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #128C7E;
+        }
+        .job-actions button:active, .job-actions a:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 #128C7E;
+        }
+
+        .empty-message {
+            background: #15120d;
+            border: 1px dashed #fbbf2480;
+            border-radius: 32px;
+            padding: 42px;
+            text-align: center;
+            color: #b59867;
+            font-style: italic;
+            font-size: 1.2rem;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: right;
+            color: #8f7b5a;
+            font-size: 0.85rem;
+            border-top: 1px solid #fbbf2440;
+            padding-top: 22px;
+        }
+
+        .payout-badge {
+            display: inline-block;
+            background: #2f4f2f;
+            color: #ffb0d6;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-left: 8px;
+            border: 1px solid #7fff7f;
+        }
+        .payout-badge.emergency {
+            background: #4d1a1a;
+            color: #ffb3b3;
+            border-color: #ff6666;
+        }
+        .completed-job-highlight {
+            border-left: 6px solid #22c55e;
+        }
+
+        .toast-location {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293bdd;
+            backdrop-filter: blur(20px);
+            border-left: 6px solid #25D366;
+            padding: 14px 28px;
+            border-radius: 60px;
+            color: #e4ffea;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 999;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 1px solid #25D36680;
+        }
+        .toast-location.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        @media (max-width: 860px) {
+            .header { flex-direction: column; align-items: stretch; }
+            .worker-controls { justify-content: space-between; flex-wrap: wrap; }
+            body { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <h1>⚒️ WORKER ELITE</h1>
+            <span class="badge">HARDWORK · GOLD</span>
+        </div>
+        <div class="worker-controls">
+            <button class="city-badge" id="cityButton">
+                <i>🏙️</i> <span id="workerCity">—</span>
+                <i style="font-size: 0.8rem;">📍</i>
+            </button>
+            <div class="toggle-switch">
+                <span class="toggle-label">AVAILABLE</span>
+                <button id="availabilityToggleBtn" class="toggle-btn">ON</button>
+            </div>
+            <button class="logout-btn" id="logoutBtn">SIGN OUT</button>
+        </div>
+    </div>
+
+    <div class="worker-info" id="workerInfo"></div>
+
+    <div class="earnings-panel">
+        <div class="earnings-stats">
+            <div class="stat-item">
+                <div class="stat-label">Available for Payout</div>
+                <div class="stat-value" id="availableEarnings">₹0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Total Approved</div>
+                <div class="stat-value" id="totalApproved">₹0</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-label">Pending (user)</div>
+                <div class="stat-value" id="pendingUser">₹0</div>
+            </div>
+        </div>
+        <div class="earnings-action">
+            <button class="elite-btn" onclick="window.location.href='earnings.html'">💰 VIEW EARNINGS</button>
+            <button class="elite-btn secondary" onclick="requestPayout()">📤 REQUEST PAYOUT</button>
+        </div>
+    </div>
+
+    <h2 class="section-title">⏳ PENDING BOOKINGS</h2>
+    <div class="cards-grid" id="pendingBookings"></div>
+
+    <h2 class="section-title">🔨 ACTIVE JOBS</h2>
+    <div class="cards-grid" id="activeJobs"></div>
+
+    <h2 class="section-title">✅ COMPLETED JOBS · FINAL PAYOUTS</h2>
+    <div class="cards-grid" id="completedJobs"></div>
+
+    <footer>
+        <span id="timestamp"></span> · every shift counts · golden standard (normal ₹200 | emergency ₹600)
+    </footer>
+
+    <div id="toastLocation" class="toast-location">
+        <i class="fas fa-map-marker-alt"></i>
+        <span id="toastText">📍 Updating location...</span>
+    </div>
+
+    <script>
+        (function() {
+            function showLocationToast(message, isError = false) {
+                const toast = document.getElementById('toastLocation');
+                const textSpan = document.getElementById('toastText');
+                const icon = toast.querySelector('i');
+                if (isError) {
+                    icon.className = 'fas fa-exclamation-triangle';
+                    toast.style.borderLeftColor = '#ff6b6b';
+                    textSpan.style.color = '#ffcccc';
+                } else {
+                    icon.className = 'fas fa-check-circle';
+                    toast.style.borderLeftColor = '#25D366';
+                    textSpan.style.color = '#e4ffea';
+                }
+                textSpan.innerText = message;
+                toast.classList.add('show');
+                setTimeout(() => {
+                    toast.classList.remove('show');
+                    setTimeout(() => {
+                        icon.className = 'fas fa-map-marker-alt';
+                        toast.style.borderLeftColor = '#25D366';
+                        textSpan.style.color = '#e4ffea';
+                    }, 300);
+                }, 3500);
+            }
+
+            const API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (function() {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api`;
+            })();
+            const workerToken = localStorage.getItem('workerToken');
+            const authHeaders = () => ({ 'Authorization': `Bearer ${workerToken}`, 'Content-Type': 'application/json' });
+
+            let currentWorker = JSON.parse(localStorage.getItem('currentWorker'));
+            if (!currentWorker || !workerToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            if (currentWorker.availability === undefined) currentWorker.availability = true;
+            if (!currentWorker.city) currentWorker.city = "Unknown";
+
+            async function updateWorkerAvailability(isAvailable) {
+                currentWorker.availability = isAvailable;
+                try {
+                    const res = await fetch(`${API_BASE}/workers/me/availability`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ availability: isAvailable })
+                    });
+                    if (res.ok) {
+                        const updated = await res.json();
+                        currentWorker = { ...currentWorker, ...updated };
+                        localStorage.setItem('currentWorker', JSON.stringify(currentWorker));
+                    }
+                } catch (e) { /* keep the optimistic local update even if the sync failed */ }
+                updateToggleUI();
+                showFloatingMessage(isAvailable ? "✅ Now AVAILABLE for new jobs" : "⛔ You are OFFLINE");
+            }
+            function showFloatingMessage(msg) {
+                let toast = document.createElement('div');
+                toast.innerText = msg;
+                toast.style.position = 'fixed';
+                toast.style.bottom = '20px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.background = '#25D366';
+                toast.style.color = 'white';
+                toast.style.padding = '12px 28px';
+                toast.style.borderRadius = '60px';
+                toast.style.fontWeight = 'bold';
+                toast.style.zIndex = '9999';
+                toast.style.boxShadow = '0 0 20px #25D366';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            }
+            function updateToggleUI() {
+                const toggleBtn = document.getElementById('availabilityToggleBtn');
+                if (toggleBtn) {
+                    if (currentWorker.availability === true) {
+                        toggleBtn.innerText = 'ON';
+                        toggleBtn.classList.remove('inactive');
+                        toggleBtn.classList.add('active');
+                    } else {
+                        toggleBtn.innerText = 'OFF';
+                        toggleBtn.classList.remove('active');
+                        toggleBtn.classList.add('inactive');
+                    }
+                }
+            }
+            function updateCityDisplay() {
+                const citySpan = document.getElementById('workerCity');
+                if (citySpan) citySpan.innerText = currentWorker.city || "Not specified";
+            }
+            function renderWorkerInfo() {
+                document.getElementById('workerInfo').innerHTML = `<p><strong>${currentWorker.name || currentWorker.email}</strong> · ${currentWorker.role || 'Worker'} · ${currentWorker.experience || 0} years experience · <span style="color:#fcd34d;">⚡ Availability: ${currentWorker.availability ? 'ON (visible)' : 'OFF (hidden)'}</span></p>`;
+            }
+            updateCityDisplay();
+            renderWorkerInfo();
+
+            let bookings = [];
+            let payments = [];
+            const workerId = currentWorker.id;
+
+            function getPayoutAmount(booking) { return booking.emergency === true ? 600 : 200; }
+
+            // Ensures every completed booking has a payment record (worker/job-details.html
+            // already creates one on completion; this is a safety-net sync in case that
+            // ever failed, mirroring what this page always did).
+            async function syncCompletedJobsWithPayments() {
+                const completedBookings = bookings.filter(b => (b.status === 'completed' || b.status === 'payment_confirmed' || b.status === 'done'));
+                for (const booking of completedBookings) {
+                    const existingPayment = payments.find(p => p.bookingId === booking.id);
+                    if (!existingPayment) {
+                        try {
+                            const res = await fetch(`${API_BASE}/payments-data`, {
+                                method: 'POST',
+                                headers: authHeaders(),
+                                body: JSON.stringify({ bookingId: booking.id, amount: booking.emergency ? 600 : 200, status: 'pending' })
+                            });
+                            if (res.ok) payments.push(await res.json());
+                        } catch (e) { /* best-effort sync */ }
+                    }
+                }
+            }
+
+            // Auto-expire pending emergency bookings older than 2 minutes (same rule
+            // as before, now written back to MongoDB instead of just this browser tab).
+            async function expireStaleEmergencyBookings() {
+                const now = new Date().getTime();
+                const stale = bookings.filter(b => b.status === 'pending' && b.emergency && now > new Date(b.createdAt).getTime() + 2 * 60 * 1000);
+                for (const b of stale) {
+                    try {
+                        await fetch(`${API_BASE}/bookings/${b.id}/status`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ status: 'expired' })
+                        });
+                        b.status = 'expired';
+                    } catch (e) { /* best-effort */ }
+                }
+            }
+
+            let pendingB = [], activeB = [], completedB = [], available = 0, approved = 0, pendingUser = 0;
+
+            async function loadDashboardData() {
+                try {
+                    const [bRes, pRes] = await Promise.all([
+                        fetch(`${API_BASE}/bookings?limit=200&sort=createdAt:desc`, { headers: authHeaders() }),
+                        fetch(`${API_BASE}/payments-data?limit=200`, { headers: authHeaders() })
+                    ]);
+                    bookings = bRes.ok ? (await bRes.json()).data || [] : [];
+                    payments = pRes.ok ? (await pRes.json()).data || [] : [];
+                } catch (e) {
+                    bookings = [];
+                    payments = [];
+                }
+
+                await expireStaleEmergencyBookings();
+                await syncCompletedJobsWithPayments();
+
+                const activeStatuses = ['accepted', 'on_the_way', 'near', 'arrived', 'started'];
+                pendingB = bookings.filter(b => b.status === 'pending');
+                activeB = bookings.filter(b => activeStatuses.includes(b.status));
+                completedB = bookings.filter(b => b.status === 'completed' || b.status === 'payment_confirmed' || b.status === 'done');
+
+                available = 0; approved = 0; pendingUser = 0;
+                payments.forEach(p => {
+                    if (p.status === 'paid_by_user') available += p.amount;
+                    else if (p.status === 'approved') approved += p.amount;
+                    else if (p.status === 'pending') pendingUser += p.amount;
+                });
+                document.getElementById('availableEarnings').innerText = `₹${available}`;
+                document.getElementById('totalApproved').innerText = `₹${approved}`;
+                document.getElementById('pendingUser').innerText = `₹${pendingUser}`;
+            }
+
+            function getUserEmail(userId) { return userId; } // booking.userId is already the user's email
+            function formatLocation(loc) { if (!loc) return '📍 Not set'; if (typeof loc === 'string') return loc; if (loc.address) return loc.address; if (loc.lat && loc.lng) return `${loc.lat}, ${loc.lng}`; return '📍 Location'; }
+            function getRemainingSeconds(createdAtISO) { const createdAt = new Date(createdAtISO).getTime(); const expiry = createdAt + 2 * 60 * 1000; return Math.max(0, Math.floor((expiry - new Date().getTime()) / 1000)); }
+
+            function renderPending() {
+                const pendingDiv = document.getElementById('pendingBookings');
+                if (pendingB.length === 0) { pendingDiv.innerHTML = '<div class="empty-message">✨ No pending bookings — ready to shine</div>'; return; }
+                let html = '';
+                pendingB.forEach(b => {
+                    const userEmail = getUserEmail(b.userId);
+                    const isEmergency = b.emergency === true;
+                    const remaining = isEmergency ? getRemainingSeconds(b.createdAt) : null;
+                    const timerClass = (remaining !== null && remaining < 30) ? 'warning' : '';
+                    const payoutAmount = isEmergency ? 600 : 200;
+                    const payoutClass = isEmergency ? 'emergency' : '';
+                    html += `<div class="job-card ${isEmergency ? 'emergency-card' : ''}" data-booking-id="${b.id}" data-emergency="${isEmergency}" data-created="${b.createdAt}">
+                        ${isEmergency ? '<span class="emergency-badge">🚨 EMERGENCY</span>' : ''}
+                        <p><strong>Booking #${b.id}</strong></p>
+                        <p>👤 User: ${userEmail}</p>
+                        <p>⏱️ Created: ${b.createdAt ? b.createdAt.slice(0,10) : '—'}</p>
+                        <p>💰 Payout: <span class="payout-badge ${payoutClass}">₹${payoutAmount}</span></p>
+                        ${isEmergency ? `<div class="timer ${timerClass}" data-timer="${b.id}">⏳ Time left: ${Math.floor(remaining/60)}:${(remaining%60).toString().padStart(2,'0')}</div>` : ''}
+                        <div class="job-actions"><button onclick="window.acceptJob('${b.id}')">✅ Accept</button><button onclick="window.rejectJob('${b.id}')">❌ Reject</button></div>
+                    </div>`;
+                });
+                pendingDiv.innerHTML = html;
+            }
+            function renderActive() {
+                const activeDiv = document.getElementById('activeJobs');
+                if (activeB.length === 0) { activeDiv.innerHTML = '<div class="empty-message">⚡ No active jobs — go get them</div>'; return; }
+                activeDiv.innerHTML = activeB.map(b => {
+                    const userEmail = getUserEmail(b.userId);
+                    let actionButton = '';
+                    if (['accepted','on_the_way','near','arrived'].includes(b.status)) actionButton = `<a href="job-details.html?bookingId=${b.id}">🔧 Update Status</a>`;
+                    const dateTime = b.date && b.timeSlot ? `${b.date} ${b.timeSlot}` : 'Time not set';
+                    const locationStr = formatLocation(b.location);
+                    const isEmergency = b.emergency === true;
+                    const payoutAmount = isEmergency ? 600 : 200;
+                    const payoutClass = isEmergency ? 'emergency' : '';
+                    return `<div class="job-card"><p><strong>Booking #${b.id}</strong></p><p>👤 User: ${userEmail}</p><p>📌 Status: <span class="badge">${b.status.replace(/_/g, ' ')}</span></p><p>💰 Est. Payout: <span class="payout-badge ${payoutClass}">₹${payoutAmount}</span></p><div class="detail-row"><i>📅</i> ${dateTime}</div><div class="detail-row"><i>📍</i> ${locationStr}</div><div class="job-actions">${actionButton}</div></div>`;
+                }).join('');
+            }
+            function renderCompleted() {
+                const completedDiv = document.getElementById('completedJobs');
+                if (completedB.length === 0) { completedDiv.innerHTML = '<div class="empty-message">🏆 No completed jobs yet — finish tasks to see golden earnings</div>'; return; }
+                let html = '';
+                completedB.forEach(job => {
+                    const userEmail = getUserEmail(job.userId);
+                    const isEmergency = job.emergency === true;
+                    const exactAmount = isEmergency ? 600 : 200;
+                    const payoutClass = isEmergency ? 'emergency' : '';
+                    const paymentRecord = payments.find(p => p.bookingId === job.id && p.workerId === workerId);
+                    let paymentStatusText = '⚠️ No payment record', paymentStatusClass = '', paymentCompleteFlag = false;
+                    if (paymentRecord) {
+                        if (paymentRecord.status === 'paid_by_user') { paymentStatusText = `✅ PAYMENT COMPLETED (₹${paymentRecord.amount})`; paymentStatusClass = 'completed'; paymentCompleteFlag = true; }
+                        else if (paymentRecord.status === 'approved') paymentStatusText = `🏅 APPROVED BY ADMIN (₹${paymentRecord.amount})`;
+                        else if (paymentRecord.status === 'pending') paymentStatusText = `⏳ PENDING USER PAYMENT (₹${paymentRecord.amount})`;
+                        else paymentStatusText = `📌 ${paymentRecord.status.toUpperCase()} · ₹${paymentRecord.amount}`;
+                    }
+                    const completeBadge = paymentCompleteFlag ? '<span class="payment-status-badge completed">💰 PAID & COMPLETED</span>' : '';
+                    html += `<div class="job-card completed-job-highlight"><p><strong>✅ Booking #${job.id}</strong> ${completeBadge}</p><p>👤 User: ${userEmail}</p><p>📅 Completed: ${job.completedAt ? job.completedAt.slice(0,10) : (job.updatedAt ? job.updatedAt.slice(0,10) : 'Recently')}</p><p>💰 Final Payout: <span class="payout-badge ${payoutClass}">₹${exactAmount}</span></p><div class="detail-row"><i>⚡</i> Mode: ${isEmergency ? 'EMERGENCY (₹600)' : 'NORMAL (₹200)'}</div><div class="detail-row"><i>💳</i> Payment status: <span class="payment-status-badge ${paymentStatusClass}">${paymentStatusText}</span></div></div>`;
+                });
+                completedDiv.innerHTML = html;
+            }
+
+            async function renderAll() {
+                await loadDashboardData();
+                renderPending(); renderActive(); renderCompleted();
+            }
+            renderAll();
+
+            const timerInterval = setInterval(() => {
+                const emergencyCards = document.querySelectorAll('.job-card[data-emergency="true"]');
+                let needsReload = false;
+                emergencyCards.forEach(card => {
+                    const createdAt = card.dataset.created;
+                    if (!createdAt) return;
+                    const remaining = getRemainingSeconds(createdAt);
+                    const timerDiv = card.querySelector('.timer');
+                    if (timerDiv) {
+                        if (remaining <= 0) needsReload = true;
+                        else { const minutes = Math.floor(remaining / 60); const seconds = remaining % 60; timerDiv.innerText = `⏳ Time left: ${minutes}:${seconds.toString().padStart(2, '0')}`; if (remaining < 30) timerDiv.classList.add('warning'); else timerDiv.classList.remove('warning'); }
+                    }
+                });
+                if (needsReload) renderAll();
+            }, 1000);
+            // Also refresh the whole board periodically so bookings made/accepted on
+            // another device (a user booking from their phone, etc.) show up here
+            // without a manual reload.
+            const refreshInterval = setInterval(renderAll, 15000);
+            window.addEventListener('beforeunload', () => { clearInterval(timerInterval); clearInterval(refreshInterval); });
+
+            window.acceptJob = async function(bookingId) {
+                try {
+                    const res = await fetch(`${API_BASE}/bookings/${bookingId}/status`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ status: 'accepted' })
+                    });
+                    if (!res.ok) { alert('This booking is no longer available.'); return; }
+                    const booking = await res.json();
+                    alert('✅ Job accepted! Payout: ' + (booking.emergency ? '₹600' : '₹200'));
+                    renderAll();
+                } catch (e) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            };
+            window.rejectJob = async function(bookingId) {
+                if (confirm('Reject this job?')) {
+                    try {
+                        const res = await fetch(`${API_BASE}/bookings/${bookingId}/status`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify({ status: 'rejected' })
+                        });
+                        if (!res.ok) { alert('Cannot reject'); return; }
+                        alert('Job rejected.');
+                        renderAll();
+                    } catch (e) {
+                        alert('Could not reach the server. Please try again.');
+                    }
+                }
+            };
+            window.requestPayout = async function() {
+                if (available === 0) { alert('No funds available.'); return; }
+                try {
+                    const res = await fetch(`${API_BASE}/payouts`, { method: 'POST', headers: authHeaders() });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) { alert(data.message || 'Could not submit payout request.'); return; }
+                    alert(`✨ Payout request of ₹${data.amount} sent.`);
+                } catch (e) {
+                    alert('Could not reach the server. Please try again.');
+                }
+            };
+
+            const cityButton = document.getElementById('cityButton');
+            async function updateCityFromLocation() {
+                if (!navigator.geolocation) { showLocationToast("❌ Geolocation not supported", true); return; }
+                showLocationToast("📍 Fetching your location...", false);
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude, lon = position.coords.longitude;
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
+                        const data = await response.json();
+                        let cityName = data.address?.city || data.address?.town || data.address?.village || data.address?.municipality || "Unknown City";
+                        currentWorker.city = cityName;
+                        try {
+                            const res = await fetch(`${API_BASE}/workers/me`, {
+                                method: 'PUT',
+                                headers: authHeaders(),
+                                body: JSON.stringify({ city: cityName })
+                            });
+                            if (res.ok) currentWorker = { ...currentWorker, ...(await res.json()) };
+                        } catch (e) { /* keep the optimistic local update even if the sync failed */ }
+                        localStorage.setItem('currentWorker', JSON.stringify(currentWorker));
+                        updateCityDisplay();
+                        showLocationToast(`✅ City updated to ${cityName}`, false);
+                        renderWorkerInfo();
+                    } catch { showLocationToast("⚠️ Failed to get city name", true); }
+                }, (err) => showLocationToast("📍 Allow location access to update city.", true));
+            }
+            cityButton.addEventListener('click', updateCityFromLocation);
+
+            const toggleBtn = document.getElementById('availabilityToggleBtn');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', async () => {
+                    const newState = !currentWorker.availability;
+                    await updateWorkerAvailability(newState);
+                    renderWorkerInfo();
+                });
+                updateToggleUI();
+            }
+            document.getElementById('timestamp').innerText = new Date().toLocaleString();
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('currentWorker');
+                localStorage.removeItem('workerToken');
+                localStorage.removeItem('workerRefreshToken');
+                window.location.href = '../index.html';
+            });
+        })();
+    </script>
+</body>
+</html>

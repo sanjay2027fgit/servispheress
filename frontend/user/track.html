@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite · Normal ₹200 • Emergency ₹600</title>
+    <!-- modern font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0c0f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+            margin: 0;
+            color: #f0e9d8;
+            transition: background 0.3s;
+        }
+
+        /* ----- BASE CONTAINER (neutral dark) ----- */
+        .container {
+            max-width: 720px;
+            width: 100%;
+            background: rgba(10, 12, 16, 0.85);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 2.5rem;
+            padding: 2.5rem 2.2rem;
+            box-shadow: 0 30px 50px -20px #000000cc;
+            transition: all 0.3s ease;
+            position: relative;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        /* ---------- THEME NORMAL (YELLOW / GOLD) ---------- */
+        .container.theme-normal {
+            border-color: rgba(255, 215, 0, 0.5);
+            box-shadow: 0 30px 50px -20px #000000,
+                        0 0 0 1px rgba(255, 215, 0, 0.3) inset,
+                        0 0 30px rgba(255, 215, 0, 0.2);
+        }
+        .container.theme-normal .confirm-btn {
+            background: linear-gradient(145deg, #fbbf24, #b7811a);
+            color: #0a0c0f;
+            border: 1px solid #fdeaa8;
+            box-shadow: 0 8px 20px -4px #fbbf24, 0 0 0 1px #ffd966 inset;
+        }
+        .container.theme-normal .confirm-btn:hover {
+            background: linear-gradient(145deg, #fcd34d, #d97706);
+            box-shadow: 0 15px 25px -8px #fbbf24, 0 0 0 2px #ffefb0 inset;
+        }
+        .container.theme-normal .info-box {
+            border-color: #ffd96660;
+            box-shadow: 0 10px 18px -10px #000000cc, 0 0 0 1px #ffd96640 inset;
+        }
+        .container.theme-normal #liveMap {
+            border: 3px solid #d4a017;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6), 0 0 20px #fbbf24;
+        }
+        .container.theme-normal .location-name {
+            border-color: #f5c542;
+            box-shadow: 0 2px 8px #00000080, 0 0 10px #ffd96620;
+        }
+        .container.theme-normal button:not(.confirm-btn) {
+            background: linear-gradient(145deg, #2c2f33, #1a1d21);
+            color: #ffd966;
+            border: 1px solid #f5c542;
+            box-shadow: 0 8px 16px -6px #000000cc, 0 0 0 1px #f5c542 inset;
+        }
+        .container.theme-normal button:not(.confirm-btn):hover {
+            background: linear-gradient(145deg, #3f4348, #2b2e33);
+            box-shadow: 0 12px 22px -8px #fbbf24, 0 0 0 2px #f5c542 inset;
+            color: #fff2d7;
+        }
+        .container.theme-normal .badge {
+            border-color: #f5c542;
+        }
+        /* confirmed extra glow for normal */
+        .container.theme-normal.booking-confirmed {
+            border-color: #ffd966;
+            box-shadow: 0 30px 50px -20px #000000,
+                        0 0 0 3px rgba(255, 215, 0, 0.8) inset,
+                        0 0 60px #fbbf24;
+        }
+
+        /* ---------- THEME EMERGENCY (RED) ---------- */
+        .container.theme-emergency {
+            border-color: rgba(255, 60, 60, 0.7);
+            box-shadow: 0 30px 50px -20px #4a0000,
+                        0 0 0 1px rgba(255, 40, 40, 0.8) inset,
+                        0 0 40px #ff3333;
+        }
+        .container.theme-emergency .confirm-btn {
+            background: linear-gradient(145deg, #cc3333, #8b1a1a);
+            color: #ffefef;
+            border: 1px solid #ffaaaa;
+            box-shadow: 0 8px 20px -4px #ff4444, 0 0 0 1px #ffa0a0 inset;
+        }
+        .container.theme-emergency .confirm-btn:hover {
+            background: linear-gradient(145deg, #e05a5a, #a12222);
+            box-shadow: 0 15px 25px -8px #ff5e5e, 0 0 0 2px #ffe0e0 inset;
+        }
+        .container.theme-emergency .info-box {
+            border-color: #ff7777;
+            box-shadow: 0 10px 18px -10px #330000, 0 0 0 1px #ff5e5e inset;
+        }
+        .container.theme-emergency #liveMap {
+            border: 3px solid #cc3333;
+            box-shadow: 0 8px 20px #2a0000, 0 0 30px #ff4d4d;
+        }
+        .container.theme-emergency .location-name {
+            border-color: #ff6a6a;
+            box-shadow: 0 2px 8px #300000, 0 0 10px #ff4d4d40;
+        }
+        .container.theme-emergency button:not(.confirm-btn) {
+            background: linear-gradient(145deg, #2c1a1a, #1a0c0c);
+            color: #ffb5b5;
+            border: 1px solid #ff5e5e;
+            box-shadow: 0 8px 16px -6px #330000, 0 0 0 1px #ff5e5e inset;
+        }
+        .container.theme-emergency button:not(.confirm-btn):hover {
+            background: linear-gradient(145deg, #4a2a2a, #2a1414);
+            box-shadow: 0 12px 22px -8px #ff5e5e, 0 0 0 2px #ffa0a0 inset;
+            color: #ffffff;
+        }
+        .container.theme-emergency .badge {
+            border-color: #ff6a6a;
+        }
+        /* confirmed extra glow for emergency */
+        .container.theme-emergency.booking-confirmed {
+            border-color: #ff6666;
+            box-shadow: 0 30px 50px -20px #660000,
+                        0 0 0 3px rgba(255, 20, 20, 0.9) inset,
+                        0 0 60px #ff3333;
+        }
+
+        /* ----- elements shared by both themes ----- */
+        .confirm-corner {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            z-index: 20;
+        }
+
+        .glitter-message {
+            margin-top: 0.5rem;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+            padding: 0.5rem 1.2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            border: 1px solid;
+            box-shadow: 0 0 20px, 0 0 40px inset;
+            animation: glitterPop 0.8s ease-out forwards;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .container.theme-normal .glitter-message {
+            color: #ffd966;
+            border-color: #fbbf24;
+            box-shadow: 0 0 20px #fbbf24, 0 0 40px #ffd966 inset;
+        }
+        .container.theme-emergency .glitter-message {
+            color: #ff9999;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 20px #ff3b3b, 0 0 40px #ff9999 inset;
+        }
+
+        @keyframes glitterPop {
+            0% { opacity: 0; transform: scale(0.5); }
+            50% { opacity: 1; transform: scale(1.1); text-shadow: 0 0 10px currentColor; }
+            100% { opacity: 0; transform: scale(1); }
+        }
+
+        h2, h3 {
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            transition: color 0.2s;
+        }
+        .container.theme-normal h2, .container.theme-normal h3 {
+            color: #f5e7c8;
+            text-shadow: 2px 2px 6px #00000080, 0 0 10px #ffd96640;
+        }
+        .container.theme-emergency h2, .container.theme-emergency h3 {
+            color: #ffd9c0;
+            text-shadow: 2px 2px 6px #300000, 0 0 10px #ff4d4d80;
+        }
+
+        h2 {
+            font-size: 2.4rem;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom-width: 2px;
+            border-bottom-style: solid;
+            padding-bottom: 0.6rem;
+        }
+        .container.theme-normal h2 {
+            border-bottom-color: #f5c54280;
+        }
+        .container.theme-emergency h2 {
+            border-bottom-color: #ff5e5e80;
+        }
+
+        h2::before {
+            content: "📍";
+            font-size: 2rem;
+            filter: drop-shadow(0 0 6px);
+        }
+
+        .info-box {
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            border-radius: 1.8rem;
+            padding: 1.5rem 1.8rem;
+            margin: 1.5rem 0;
+            color: #f0e9d8;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        #liveMap {
+            width: 100%;
+            height: 280px;
+            border-radius: 1.8rem;
+            margin: 1.5rem 0 0.5rem 0;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            z-index: 1;
+            background:
+                radial-gradient(circle at center, rgba(245, 197, 66, 0.24), rgba(0, 0, 0, 0.95) 70%),
+                #090909;
+        }
+
+        .map-fallback-note {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 500;
+            background: rgba(0, 0, 0, 0.78);
+            color: #ffd966;
+            border: 1px solid #f5c542;
+            border-radius: 999px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: none;
+            pointer-events: none;
+        }
+
+        .location-name {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(4px);
+            border-radius: 3rem;
+            padding: 0.8rem 1.5rem;
+            margin: 0.5rem 0 1.2rem 0;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        button, .btn {
+            border: none;
+            padding: 0.9rem 2rem;
+            border-radius: 3rem;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 0.25rem 0.25rem 0 0;
+            letter-spacing: 0.3px;
+        }
+
+        #emergencyToggle {
+            background: linear-gradient(145deg, #cc3333, #8b1a1a);
+            color: white;
+            border: 1px solid #ffaaaa;
+        }
+        #emergencyToggle.normal-mode {
+            background: linear-gradient(145deg, #2c2f33, #1a1d21);
+            color: #ffd966;
+            border-color: #f5c542;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.3rem 1.1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(2px);
+            box-shadow: 0 2px 6px #00000080;
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        .badge-completed {
+            background: #1a3b2e;
+            border-color: #6da57a;
+            color: #d0f0d0;
+        }
+        .badge-paid {
+            background: #2e3b1a;
+            border-color: #f5c542;
+            color: #ffdfa0;
+        }
+
+        .notification {
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 1.8rem;
+            padding: 1.4rem 1.8rem;
+            margin: 1.8rem 0;
+            box-shadow: 0 10px 20px -8px #000000, 0 0 0 1px inset;
+            font-weight: 500;
+        }
+        .container.theme-normal .notification {
+            border-color: #f5c542;
+            color: #ffdfa0;
+        }
+        .container.theme-emergency .notification {
+            border-color: #ff5e5e;
+            color: #ffc6c6;
+        }
+
+        select, textarea {
+            background: rgba(0,0,0,0.8);
+            border-radius: 2rem;
+            padding: 0.8rem 1.4rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            color: #f0e9d8;
+            width: 100%;
+            margin: 0.5rem 0 1rem;
+            outline: none;
+            border-width: 1px;
+            border-style: solid;
+        }
+        .container.theme-normal select, .container.theme-normal textarea {
+            border-color: #f5c542;
+        }
+        .container.theme-emergency select, .container.theme-emergency textarea {
+            border-color: #ff5e5e;
+        }
+
+        hr {
+            border: none;
+            height: 2px;
+            margin: 2rem 0;
+        }
+        .container.theme-normal hr {
+            background: linear-gradient(90deg, transparent, #f5c542, #fbbf24, #f5c542, transparent);
+        }
+        .container.theme-emergency hr {
+            background: linear-gradient(90deg, transparent, #ff5e5e, #ff3333, #ff5e5e, transparent);
+        }
+
+        .qr-payment {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 1.8rem 0 1.5rem;
+            padding: 1.5rem;
+            background: rgba(0,0,0,0.6);
+            border-radius: 2rem;
+            border-width: 1px;
+            border-style: solid;
+            box-shadow: 0 10px 20px -8px #000000;
+        }
+        .container.theme-normal .qr-payment {
+            border-color: #f5c542;
+        }
+        .container.theme-emergency .qr-payment {
+            border-color: #ff5e5e;
+        }
+
+        .qr-payment img {
+            width: 160px;
+            height: 160px;
+            border-radius: 1.2rem;
+            background: white;
+            padding: 8px;
+            box-shadow: 0 4px 12px #000000;
+            border: 1px solid;
+        }
+
+        .accuracy-badge {
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        .map-hint {
+            font-size: 0.85rem;
+            border-radius: 20px;
+            padding: 4px 12px;
+            display: inline-block;
+            border-width: 1px;
+            border-style: dashed;
+        }
+        .container.theme-normal .map-hint {
+            color: #f5d97a;
+            background: #00000060;
+            border-color: #f5c542;
+        }
+        .container.theme-emergency .map-hint {
+            color: #ffc6c6;
+            background: #2a0a0a;
+            border-color: #ff5e5e;
+        }
+
+        /* ---------- EMERGENCY SIDE BAR (only visible in emergency) ---------- */
+        .emergency-side-bar {
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: none;  /* hidden by default */
+            flex-direction: column;
+            gap: 16px;
+            background: rgba(20, 0, 0, 0.7);
+            backdrop-filter: blur(12px);
+            padding: 18px 8px;
+            border-radius: 40px;
+            border: 2px solid #ff5e5e;
+            box-shadow: 0 10px 30px #ff000040, 0 0 20px #ff3b3b;
+            z-index: 100;
+        }
+
+        .container.theme-emergency .emergency-side-bar {
+            display: flex;  /* show only in emergency */
+        }
+
+        .emergency-icon {
+            width: 48px;
+            height: 48px;
+            background: #2a0c0c;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffb5b5;
+            font-size: 1.6rem;
+            border: 2px solid #ff8a8a;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 0 15px #ff4d4d;
+            animation: sideIconIdle 2s infinite;
+        }
+
+        .emergency-icon:hover {
+            background: #ff4d4d;
+            color: white;
+            transform: scale(1.1);
+            border-color: white;
+            box-shadow: 0 0 30px red;
+            animation: none;
+        }
+
+        @keyframes sideIconIdle {
+            0% { box-shadow: 0 0 5px red; }
+            50% { box-shadow: 0 0 20px #ff8989; transform: translateX(-4px); }
+            100% { box-shadow: 0 0 5px red; }
+        }
+
+        .emergency-icon[data-tooltip] {
+            position: relative;
+        }
+        .emergency-icon[data-tooltip]:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            right: 60px;
+            background: #cc3333;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.2s;
+            border: 1px solid white;
+            font-weight: 600;
+            box-shadow: 0 4px 8px black;
+        }
+        .emergency-icon[data-tooltip]:hover:after {
+            opacity: 1;
+            right: 70px;
+        }
+
+        .worker-marker-pulse {
+            width: 24px; height: 24px; background: #ff3333; border-radius: 50%; border: 3px solid #ffe5e5; box-shadow: 0 0 0 4px rgba(255,0,0,0.4); animation: pulse-red 1.2s infinite;
+        }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255,0,0,0.7); } 70% { box-shadow: 0 0 0 12px rgba(255,0,0,0); } 100% { box-shadow: 0 0 0 0 rgba(255,0,0,0); } }
+        .user-marker-white {
+            width: 22px; height: 22px; background: #ffffff; border-radius: 50%; border: 4px solid #cc3333; box-shadow: 0 0 20px white, 0 0 40px #ffa0a0; animation: glow-white 1.5s infinite alternate;
+        }
+        @keyframes glow-white { from { box-shadow: 0 0 10px white, 0 0 20px #ffb3b3; } to { box-shadow: 0 0 20px white, 0 0 40px #ff5e5e; } }
+
+        .btn-shake:hover { animation: shake 0.3s ease-in-out; }
+        @keyframes shake { 0%,100%{ transform: translateX(0); } 20%{ transform: translateX(-6px); } 40%{ transform: translateX(6px); } 60%{ transform: translateX(-3px); } 80%{ transform: translateX(3px); } }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* ---------- CHAT MODAL (red theme) ---------- */
+        .chat-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+        .chat-modal.active {
+            display: flex;
+        }
+        .chat-modal-content {
+            background: rgba(30, 8, 8, 0.95);
+            backdrop-filter: blur(20px);
+            border: 2px solid #ff5e5e;
+            border-radius: 3rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 0 50px #ff3333, 0 0 0 2px #ff9999 inset;
+            color: #ffeae3;
+        }
+        .chat-modal-content h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: #ffb5b5;
+            border-bottom: 2px solid #ff5e5e;
+            padding-bottom: 0.5rem;
+        }
+        .chat-messages {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 1.5rem;
+            padding: 0.5rem;
+            background: #1a0c0c;
+            border-radius: 1.5rem;
+            border: 1px solid #ff5e5e;
+        }
+        .chat-message {
+            padding: 0.8rem;
+            margin: 0.5rem 0;
+            border-radius: 1rem;
+            background: #2a1414;
+            border-left: 4px solid #ff5e5e;
+        }
+        .chat-message.admin {
+            border-left-color: #4d79ff;
+            background: #1a2a3a;
+        }
+        .chat-message small {
+            display: block;
+            color: #ffb5b5;
+            font-size: 0.7rem;
+            margin-bottom: 0.3rem;
+        }
+        .chat-message p {
+            margin: 0;
+            color: #ffeae3;
+        }
+        .reply-box {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .reply-box textarea {
+            flex: 1;
+            padding: 0.8rem;
+            border-radius: 2rem;
+            background: #2a1a1a;
+            border: 2px solid #ff5e5e;
+            color: white;
+            outline: none;
+            resize: none;
+        }
+        .reply-box button {
+            background: #ff5e5e;
+            border: none;
+            color: #0b0b0b;
+            padding: 0 2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid #ff9999;
+        }
+        .reply-box button:hover {
+            background: #ff3333;
+            box-shadow: 0 0 20px #ff0000;
+        }
+        .close-modal {
+            float: right;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ffb5b5;
+            line-height: 1;
+        }
+        .close-modal:hover {
+            color: #ff6666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container theme-normal" id="mainContainer">
+        <div class="confirm-corner" id="confirmCorner"></div>
+
+        <!-- EMERGENCY SIDE BAR (only two icons: chat and worker location) -->
+        <div class="emergency-side-bar">
+            <div class="emergency-icon" data-tooltip="Emergency Chat" id="openChatBtn"><i class="fas fa-comment-dots"></i></div>
+            <div class="emergency-icon" data-tooltip="Refresh Worker Location" onclick="refreshStatus()"><i class="fas fa-map-marker-alt"></i></div>
+        </div>
+
+        <h2>Elite Track</h2>
+        <div id="bookingInfo" class="info-box"></div>
+       
+        <div id="liveMap" style="position: relative;">
+            <div id="mapFallbackNote" class="map-fallback-note">Map tiles unavailable — using local coordinates</div>
+        </div>
+        <div id="locationName" class="location-name">Initializing location...</div>
+       
+        <div class="flex-row">
+            <button onclick="updateUserLocation()" class="btn-shake"><i class="fas fa-location-dot"></i> GPS Update</button>
+            <button id="manualMapBtn" class="btn-shake"><i class="fas fa-map-pin"></i> Set on map (click)</button>
+            <span id="status" class="badge"></span>
+        </div>
+
+        <!-- Emergency Toggle Button (always visible) -->
+        <div style="margin-top: 12px;">
+            <button id="emergencyToggle" onclick="toggleEmergency()" class="btn-shake"><i class="fas fa-exclamation-triangle"></i> <span id="toggleText">Activate Emergency</span></button>
+        </div>
+
+        <div id="mapClickHint" class="map-hint" style="display: none;"><i class="fas fa-hand-pointer"></i> Click on map to set location</div>
+
+        <div id="notificationArea" style="display: none;"></div>
+        <div id="otpSection" style="display: none;"></div>
+        <div id="postWorkSection" style="display: none;"></div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+            <button onclick="refreshStatus()" class="btn-shake"><i class="fas fa-rotate"></i> Refresh Status</button>
+            <button class="btn-back btn-shake" onclick="window.location.href='dashboard.html'"><i class="fas fa-arrow-left"></i> Back to Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Chat Modal (User) -->
+    <div id="chatModal" class="chat-modal">
+        <div class="chat-modal-content">
+            <span class="close-modal" id="closeModalBtn">&times;</span>
+            <h2 id="modalBookingTitle">Emergency Chat</h2>
+            <div id="chatMessages" class="chat-messages"></div>
+            <div class="reply-box">
+                <textarea id="replyMessage" placeholder="Type your message..." rows="2"></textarea>
+                <button id="sendReplyBtn">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        (async function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookingId = urlParams.get('bookingId');
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            let userToken = localStorage.getItem('userToken') || '';
+            const userRefreshToken = localStorage.getItem('userRefreshToken') || '';
+            const API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (function() {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api`;
+            })();
+            const authHeaders = () => ({ 'Authorization': `Bearer ${userToken}`, 'Content-Type': 'application/json' });
+            const socket = window.io ? window.io({
+                auth: { token: `Bearer ${userToken}` },
+                transports: ['websocket']
+            }) : null;
+
+            async function refreshUserSession() {
+                if (!userRefreshToken) return false;
+                try {
+                    const refreshRes = await fetch(`${API_BASE}/auth/refresh`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ refreshToken: userRefreshToken })
+                    });
+                    const refreshData = await refreshRes.json().catch(() => ({}));
+                    if (!refreshRes.ok || !refreshData.token || !refreshData.refreshToken) {
+                        return false;
+                    }
+                    userToken = refreshData.token;
+                    localStorage.setItem('userToken', refreshData.token);
+                    localStorage.setItem('userRefreshToken', refreshData.refreshToken);
+                    return true;
+                } catch (e) {
+                    return false;
+                }
+            }
+
+            async function safeFetch(url, options = {}) {
+                const response = await fetch(url, {
+                    ...options,
+                    headers: {
+                        ...(authHeaders()),
+                        ...(options.headers || {})
+                    }
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    const refreshed = await refreshUserSession();
+                    if (!refreshed) {
+                        window.location.href = 'login.html';
+                        throw new Error('Session expired. Please log in again.');
+                    }
+
+                    return fetch(url, {
+                        ...options,
+                        headers: {
+                            ...(authHeaders()),
+                            ...(options.headers || {})
+                        }
+                    });
+                }
+
+                return response;
+            }
+
+            if (!currentUser || !userToken) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            async function fetchBooking() {
+                try {
+                    const res = await safeFetch(`${API_BASE}/bookings/${bookingId}`, { headers: authHeaders() });
+                    if (!res.ok) return null;
+                    return await res.json();
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            let booking = await fetchBooking();
+            if (!booking || booking.userId !== currentUser?.email) {
+                alert('Invalid booking');
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            // Ensure emergency flag exists (default false)
+            if (booking.emergency === undefined) booking.emergency = false;
+
+            let worker = null;
+            try {
+                const res = await safeFetch(`${API_BASE}/workers/${booking.workerId}`, { headers: authHeaders() });
+                if (res.ok) worker = await res.json();
+            } catch (e) { /* worker name falls back to booking.workerId below */ }
+
+            let cachedPayment = null;
+            let cachedFeedbackExists = false;
+            const ARRIVAL_OTP_API_BASE = (() => {
+                const isLocalFile = window.location.protocol === 'file:';
+                const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                const backendOrigin = (function() {
+                    const host = window.location.hostname;
+                    if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                    return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+                })();
+                return `${backendOrigin}/api/arrival-otp`;
+            })();
+
+            async function refreshPayment() {
+                try {
+                    const res = await safeFetch(`${API_BASE}/payments-data?bookingId=${booking.id}&limit=1`, { headers: authHeaders() });
+                    if (res.ok) {
+                        const data = await res.json();
+                        cachedPayment = (data.data && data.data[0]) || null;
+                    }
+                } catch (e) { /* keep previous cached value */ }
+            }
+
+            async function refreshFeedbackExists() {
+                try {
+                    const res = await safeFetch(`${API_BASE}/feedback?bookingId=${booking.id}&limit=1`, { headers: authHeaders() });
+                    if (res.ok) {
+                        const data = await res.json();
+                        cachedFeedbackExists = (data.data && data.data.length > 0);
+                    }
+                } catch (e) { /* keep previous cached value */ }
+            }
+
+            function getPayment() {
+                return cachedPayment;
+            }
+
+            function feedbackExists() {
+                return cachedFeedbackExists;
+            }
+
+            let trackMap = null;
+            let workerMarker = null;
+            let userMarker = null;
+            let mapClickActive = false;
+            let userWatchId = null;
+            let userSocketJoined = false;
+
+            // ---- EMERGENCY TOGGLE ----
+            window.toggleEmergency = async function() {
+                const newValue = !booking.emergency;
+                try {
+                    const res = await safeFetch(`${API_BASE}/bookings/${bookingId}/emergency`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ emergency: newValue })
+                    });
+                    if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.message || 'Could not update emergency mode.'); return; }
+                    booking = await res.json();
+                } catch (e) {
+                    alert('Could not reach the server. Please try again.');
+                    return;
+                }
+                applyThemeAndUI();
+                updateEmergencyToggleButton();
+            };
+
+            function updateEmergencyToggleButton() {
+                const toggleBtn = document.getElementById('emergencyToggle');
+                const toggleText = document.getElementById('toggleText');
+                if (booking.emergency) {
+                    toggleBtn.classList.remove('normal-mode');
+                    toggleBtn.innerHTML = '<i class="fas fa-check-circle"></i> <span id="toggleText">Deactivate Emergency</span>';
+                } else {
+                    toggleBtn.classList.add('normal-mode');
+                    toggleBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> <span id="toggleText">Activate Emergency</span>';
+                }
+            }
+
+            function applyThemeAndUI() {
+                const container = document.getElementById('mainContainer');
+                container.classList.remove('theme-normal', 'theme-emergency');
+                if (booking.emergency) {
+                    container.classList.add('theme-emergency');
+                } else {
+                    container.classList.add('theme-normal');
+                }
+                if (booking.status === 'confirmed' || booking.status === 'arrived' || booking.status === 'completed') {
+                    container.classList.add('booking-confirmed');
+                } else {
+                    container.classList.remove('booking-confirmed');
+                }
+            }
+
+            // ---- glitter confirm ----
+            function showGlitterConfirm() {
+                const corner = document.getElementById('confirmCorner');
+                const glitterDiv = document.createElement('div');
+                glitterDiv.className = 'glitter-message';
+                glitterDiv.innerText = booking.emergency ? '🔥 EMERGENCY CONFIRMED! 🔥' : '✨ CONFIRMED! ✨';
+                corner.appendChild(glitterDiv);
+                setTimeout(() => {
+                    if (glitterDiv.parentNode) glitterDiv.remove();
+                }, 1200);
+            }
+
+            function updateConfirmButton() {
+                const corner = document.getElementById('confirmCorner');
+                if (booking.status === 'pending') {
+                    corner.innerHTML = `<button class="confirm-btn" id="confirmBookingBtn"><i class="fas fa-check-circle"></i> CONFIRM BOOKING</button>`;
+                    document.getElementById('confirmBookingBtn').addEventListener('click', async function() {
+                        try {
+                            const res = await safeFetch(`${API_BASE}/bookings/${bookingId}/status`, {
+                                method: 'PUT',
+                                headers: authHeaders(),
+                                body: JSON.stringify({ status: 'confirmed' })
+                            });
+                            if (!res.ok) { const d = await res.json().catch(() => ({})); alert(d.message || 'Could not confirm booking.'); return; }
+                            booking = await res.json();
+                            updateUI();
+                            showGlitterConfirm();
+                        } catch (e) {
+                            alert('Could not reach the server. Please try again.');
+                        }
+                    });
+                } else {
+                    corner.innerHTML = '';
+                }
+                applyThemeAndUI();
+            }
+
+            // ---- map init ----
+            function initTrackMap(lat, lng) {
+                const liveMapEl = document.getElementById('liveMap');
+                const fallbackNote = document.getElementById('mapFallbackNote');
+                if (!liveMapEl) return;
+
+                if (typeof window.L === 'undefined') {
+                    if (fallbackNote) fallbackNote.style.display = 'block';
+                    liveMapEl.title = 'Leaflet map library failed to load.';
+                    return;
+                }
+
+                if (trackMap) {
+                    trackMap.setView([lat, lng], 14);
+                    if (userMarker) userMarker.setLatLng([lat, lng]);
+                    return;
+                }
+
+                try {
+                    trackMap = window.L.map('liveMap').setView([lat, lng], 14);
+                    const tileLayer = window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap',
+                        subdomains: 'abc',
+                        maxZoom: 19
+                    });
+
+                    tileLayer.on('tileerror', function() {
+                        if (fallbackNote) fallbackNote.style.display = 'block';
+                    });
+
+                    tileLayer.addTo(trackMap);
+
+                    userMarker = window.L.marker([lat, lng], {
+                        icon: window.L.divIcon({
+                            className: 'user-marker-white',
+                            html: '<div class="user-marker-white"></div>',
+                            iconSize: [30, 30],
+                            popupAnchor: [0, -15]
+                        })
+                    }).addTo(trackMap).bindPopup('Your location (you)').openPopup();
+
+                    workerMarker = window.L.marker([lat, lng], {
+                        icon: window.L.divIcon({
+                            className: 'worker-marker-pulse',
+                            html: '<div class="worker-marker-pulse"></div>',
+                            iconSize: [34, 34],
+                            popupAnchor: [0, -15]
+                        })
+                    }).addTo(trackMap).bindPopup('Worker location');
+
+                    trackMap.on('click', function(e) {
+                        if (mapClickActive) {
+                            const { lat, lng } = e.latlng;
+                            setUserLocationManually(lat, lng);
+                            mapClickActive = false;
+                            document.getElementById('mapClickHint').style.display = 'none';
+                        }
+                    });
+
+                    setTimeout(function() {
+                        if (trackMap) trackMap.invalidateSize();
+                    }, 120);
+                } catch (error) {
+                    if (fallbackNote) fallbackNote.style.display = 'block';
+                    liveMapEl.title = 'Map failed to initialize.';
+                }
+            }
+
+            async function setUserLocationManually(lat, lng) {
+                try {
+                    const res = await safeFetch(`${API_BASE}/bookings/${bookingId}/user-location`, {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ lat, lng })
+                    });
+                    if (res.ok) booking = await res.json();
+                } catch (e) { /* keep the optimistic local map update even if the sync failed */ }
+                if (trackMap && userMarker) {
+                    userMarker.setLatLng([lat, lng]);
+                    trackMap.setView([lat, lng], 14);
+                } else {
+                    initTrackMap(lat, lng);
+                }
+                const locName = await reverseGeocode(lat, lng);
+                document.getElementById('locationName').innerHTML = `📍 ${locName} <span class="accuracy-badge">(manual)</span>`;
+            }
+
+            async function updateUserLocation() {
+                try {
+                    const pos = await getUserLocation();
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy ? `±${Math.round(pos.coords.accuracy)}m` : '';
+                    const payload = { lat, lng, accuracy: pos.coords.accuracy || 0 };
+
+                    try {
+                        const res = await safeFetch(`${API_BASE}/bookings/${bookingId}/user-location`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify(payload)
+                        });
+                        if (res.ok) booking = await res.json();
+                    } catch (e) { /* keep the optimistic local map update even if the sync failed */ }
+
+                    if (socket && userSocketJoined) {
+                        socket.emit('userLocationUpdate', { bookingId, ...payload });
+                    }
+
+                    initTrackMap(lat, lng);
+                    if (userMarker) userMarker.setLatLng([lat, lng]);
+                    trackMap.setView([lat, lng], 14);
+
+                    const locName = await reverseGeocode(lat, lng);
+                    document.getElementById('locationName').innerHTML = `📍 ${locName} <span class="accuracy-badge">(GPS ${accuracy})</span>`;
+                } catch (err) {
+                    document.getElementById('locationName').innerHTML = '📍 GPS unavailable — use "Set on map"';
+                    const fallbackLat = (booking.userLocation && booking.userLocation.lat) || (booking.location && booking.location.lat) || 28.6139;
+                    const fallbackLng = (booking.userLocation && booking.userLocation.lng) || (booking.location && booking.location.lng) || 77.2090;
+                    if (!trackMap) initTrackMap(fallbackLat, fallbackLng);
+                }
+            }
+
+            function startUserGeoWatch() {
+                if (!navigator.geolocation) return;
+                if (userWatchId !== null) return; // never allow a second watcher
+
+                let lastSent = null; // { lat, lng, at }
+                const MIN_INTERVAL_MS = 4000;
+                const MIN_MOVE_METERS = 10;
+
+                function haversineMeters(lat1, lng1, lat2, lng2) {
+                    const R = 6371000;
+                    const toRad = (d) => (d * Math.PI) / 180;
+                    const dLat = toRad(lat2 - lat1);
+                    const dLng = toRad(lng2 - lng1);
+                    const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+                    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+                }
+
+                userWatchId = navigator.geolocation.watchPosition(async (pos) => {
+                    const lat = pos.coords.latitude;
+                    const lng = pos.coords.longitude;
+                    const accuracy = pos.coords.accuracy || 0;
+
+                    // Throttle: only actually send if enough time passed or we
+                    // moved a meaningful distance. watchPosition can fire many
+                    // times per second -- this is what stops that from turning
+                    // into a request storm.
+                    const now = Date.now();
+                    if (lastSent) {
+                        const elapsed = now - lastSent.at;
+                        const moved = haversineMeters(lastSent.lat, lastSent.lng, lat, lng);
+                        if (elapsed < MIN_INTERVAL_MS && moved < MIN_MOVE_METERS) {
+                            return; // update the map locally isn't even needed this often; skip entirely
+                        }
+                    }
+                    lastSent = { lat, lng, at: now };
+
+                    const payload = { bookingId, lat, lng, accuracy };
+                    // Socket.IO is the primary transport now (persists server-side
+                    // and broadcasts live). REST is no longer called on every tick --
+                    // see the periodic fallback sync below for when sockets are down.
+                    if (socket && userSocketJoined) {
+                        socket.emit('userLocationUpdate', payload);
+                    } else {
+                        // No live socket connection -- fall back to REST so location
+                        // still updates, just without the extra per-tick duplicate write.
+                        safeFetch(`${API_BASE}/bookings/${bookingId}/user-location`, {
+                            method: 'PUT',
+                            headers: authHeaders(),
+                            body: JSON.stringify(payload)
+                        }).then((res) => res.ok && res.json()).then((data) => { if (data) booking = data; }).catch(() => {});
+                    }
+
+                    initTrackMap(lat, lng);
+                    if (userMarker) userMarker.setLatLng([lat, lng]);
+                    if (trackMap) trackMap.setView([lat, lng], 14);
+                }, (err) => {
+                    console.warn('User geolocation error:', err);
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 5000
+                });
+            }
+
+            function getUserLocation() {
+                return new Promise((resolve, reject) => {
+                    if (!navigator.geolocation) {
+                        reject(new Error('Geolocation not supported'));
+                    } else {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 0
+                        });
+                    }
+                });
+            }
+
+            async function reverseGeocode(lat, lng) {
+                const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`;
+                try {
+                    const response = await fetch(url, {
+                        headers: { 'User-Agent': 'EliteEmergency/1.0' }
+                    });
+                    const data = await response.json();
+                    return data.display_name || 'Unknown location';
+                } catch (e) {
+                    return 'Location name unavailable';
+                }
+            }
+
+            if (socket) {
+                socket.on('connect', () => {
+                    socket.emit('joinBooking', bookingId);
+                });
+                socket.on('bookingJoined', () => {
+                    userSocketJoined = true;
+                });
+                socket.on('workerLocationChanged', (payload) => {
+                    if (!payload?.workerLocation) return;
+                    lastKnownWorkerLoc = payload.workerLocation;
+                    if (trackMap && workerMarker) {
+                        workerMarker.setLatLng([lastKnownWorkerLoc.lat, lastKnownWorkerLoc.lng]);
+                    }
+                });
+                socket.on('bookingError', (data) => {
+                    console.warn('Socket tracking error:', data?.message || 'Unknown');
+                });
+            }
+
+            // Polls the worker's live position from MongoDB -- this is what makes
+            // tracking actually work across two different devices/browsers.
+            let lastKnownWorkerLoc = null;
+            async function updateWorkerMarker() {
+                try {
+                    const res = await safeFetch(`${API_BASE}/bookings/${bookingId}/location`, { headers: authHeaders() });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (data.liveLocation) lastKnownWorkerLoc = data.liveLocation;
+                } catch (e) { /* keep last known position on failure */ }
+                if (lastKnownWorkerLoc && trackMap && workerMarker) {
+                    workerMarker.setLatLng([lastKnownWorkerLoc.lat, lastKnownWorkerLoc.lng]);
+                }
+            }
+
+            // ---- CHAT FUNCTIONALITY ----
+            const modal = document.getElementById('chatModal');
+            const openChatBtn = document.getElementById('openChatBtn');
+            const closeModal = document.getElementById('closeModalBtn');
+            const modalTitle = document.getElementById('modalBookingTitle');
+            const chatMessagesDiv = document.getElementById('chatMessages');
+            const replyInput = document.getElementById('replyMessage');
+            const sendBtn = document.getElementById('sendReplyBtn');
+
+            let chatPollInterval = null;
+
+            function openChat() {
+                if (!booking.emergency) {
+                    alert('Emergency mode must be active to use chat.');
+                    return;
+                }
+                modalTitle.innerText = `Emergency Chat - Booking #${booking.id}`;
+                loadChatMessages();
+                modal.classList.add('active');
+                // start polling every 6 seconds to reduce duplicate requests while the chat is open
+                if (chatPollInterval) clearInterval(chatPollInterval);
+                chatPollInterval = setInterval(loadChatMessages, 6000);
+            }
+
+            function closeChat() {
+                modal.classList.remove('active');
+                if (chatPollInterval) {
+                    clearInterval(chatPollInterval);
+                    chatPollInterval = null;
+                }
+            }
+
+            function loadChatMessages() {
+                if (!booking) return;
+                safeFetch(`${API_BASE}/chat/${booking.id}`, { headers: authHeaders() })
+                    .then(res => res.ok ? res.json() : { messages: [] })
+                    .then(chat => {
+                        if (!chat || !chat.messages || chat.messages.length === 0) {
+                            chatMessagesDiv.innerHTML = '<p style="padding:1rem; text-align:center;">No messages yet. Start the conversation.</p>';
+                            return;
+                        }
+                        let html = '';
+                        chat.messages.forEach(msg => {
+                            const senderClass = msg.sender === 'admin' ? 'admin' : '';
+                            const senderLabel = msg.sender === 'admin' ? 'Admin' : (msg.sender === 'worker' ? 'Worker' : 'You');
+                            html += `
+                                <div class="chat-message ${senderClass}">
+                                    <small>${senderLabel} · ${new Date(msg.timestamp).toLocaleString()}</small>
+                                    <p>${escapeHTML(msg.message)}</p>
+                                </div>
+                            `;
+                        });
+                        chatMessagesDiv.innerHTML = html;
+                        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+                    })
+                    .catch(() => { /* keep whatever was last rendered */ });
+            }
+
+            function sendMessage() {
+                const message = replyInput.value.trim();
+                if (!message) return;
+
+                fetch(`${API_BASE}/chat/${booking.id}`, {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ message })
+                }).then(res => {
+                    if (!res.ok) return res.json().then(d => { throw new Error(d.message || 'Could not send message'); });
+                    replyInput.value = '';
+                    loadChatMessages();
+                }).catch(err => alert(err.message));
+            }
+
+            function escapeHTML(str) {
+                return String(str).replace(/[&<>"]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    if (m === '"') return '&quot;';
+                    return m;
+                });
+            }
+
+            // Read-only: fetches the current arrival OTP status/code for this
+            // booking. Never generates or regenerates anything, so calling it
+            // repeatedly (on every updateUI() tick) is safe -- refreshing this
+            // page can never invalidate an OTP the worker is about to be given.
+            const refreshArrivalOtpDisplay = async () => {
+                const otpDiv = document.getElementById('otpSection');
+                if (!otpDiv || !booking) return;
+                try {
+                    const res = await fetch(`${ARRIVAL_OTP_API_BASE}/${booking.id}`, { headers: authHeaders() });
+                    const data = await res.json().catch(() => ({}));
+                    if (!res.ok) throw new Error(data.message || 'Failed to load arrival OTP');
+
+                    if (data.status === 'available') {
+                        otpDiv.innerHTML = `
+                            <h3>🔐 Worker Arrived</h3>
+                            <p id="arrivalOtpMsg" style="margin-top:8px;color:#f6d47a;">
+                                Share this OTP with the worker so they can verify and start the work.
+                            </p>
+                            <div id="arrivalOtpCode" style="margin-top:12px;padding:16px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:14px;font-size:1.3rem;letter-spacing:0.35rem;text-align:center;color:#fff;">
+                                ${escapeHTML(data.otp)}
+                            </div>
+                            <p style="margin-top:10px;font-size:0.9rem;opacity:0.85;">This OTP is valid for a few minutes and can only be used once.</p>
+                        `;
+                    } else if (data.status === 'verified') {
+                        otpDiv.innerHTML = `
+                            <h3>✅ Arrival Verified</h3>
+                            <p style="margin-top:8px;color:#8ef6a8;">The worker has verified this OTP. Work is starting.</p>
+                        `;
+                    } else if (data.status === 'expired') {
+                        otpDiv.innerHTML = `
+                            <h3>🔐 Worker Arrived</h3>
+                            <p style="margin-top:8px;color:#f6d47a;">Your previous OTP expired. Ask the worker to resend it.</p>
+                        `;
+                    } else {
+                        otpDiv.innerHTML = `
+                            <h3>🔐 Worker Arrived</h3>
+                            <p style="margin-top:8px;color:#f6d47a;">Arrival OTP will be available shortly — please wait.</p>
+                        `;
+                    }
+                } catch (error) {
+                    console.error('Failed to load arrival OTP:', error);
+                    otpDiv.innerHTML = `
+                        <h3>🔐 Worker Arrived</h3>
+                        <p style="margin-top:8px;color:#f6d47a;">Unable to load OTP right now. It will refresh automatically.</p>
+                    `;
+                }
+            };
+
+            openChatBtn.addEventListener('click', openChat);
+            closeModal.addEventListener('click', closeChat);
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) closeChat();
+            });
+            sendBtn.addEventListener('click', sendMessage);
+            replyInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            // ---- main UI update ----
+            async function updateUI() {
+                const fresh = await fetchBooking();
+                if (!fresh) return;
+                booking = fresh;
+                await Promise.all([refreshPayment(), refreshFeedbackExists()]);
+
+                document.getElementById('status').innerHTML = `<span class="badge">${booking.status.replace(/_/g, ' ')}</span>`;
+
+                document.getElementById('bookingInfo').innerHTML = `
+                    <p><strong>Booking ID:</strong> ${booking.id}</p>
+                    <p><strong>Worker:</strong> ${worker ? worker.name : booking.workerId} (${worker ? worker.role : ''})</p>
+                    <p><strong>Mode:</strong> ${booking.emergency ? '🔴 EMERGENCY' : '🟡 NORMAL'}</p>
+                `;
+
+                const otpDiv = document.getElementById('otpSection');
+                if (booking.status === 'arrived' || booking.status === 'in_progress') {
+                    otpDiv.style.display = 'block';
+                    refreshArrivalOtpDisplay();
+                } else {
+                    otpDiv.style.display = 'none';
+                }
+
+                const postDiv = document.getElementById('postWorkSection');
+                const notificationDiv = document.getElementById('notificationArea');
+
+                if (booking.status === 'completed') {
+                    postDiv.style.display = 'block';
+                    notificationDiv.style.display = 'block';
+                    notificationDiv.innerHTML = `<div class="notification"><i class="fas fa-circle-check" style="margin-right:10px;"></i>✅ Work completed! Please complete payment & feedback.</div>`;
+
+                    const payment = getPayment();
+                    let paymentHtml = '', feedbackHtml = '';
+
+                    if (payment) {
+                        const displayAmount = payment.amount;
+                        if (payment.status === 'pending') {
+                            paymentHtml = `
+                                <div style="margin:15px 0;">
+                                    <h4>💰 Payment Required</h4>
+                                    <p>Amount: ₹${displayAmount}</p>
+                                    <p style="opacity:0.9; font-size:0.9rem; margin-top:6px;">
+                                        Pay securely using <strong>Card / UPI / Netbanking</strong> in Razorpay Checkout.
+                                    </p>
+                                    <button id="payNowBtn"><i class="fa-solid fa-credit-card"></i> Pay with Razorpay (Card/UPI)</button>
+                                </div>
+                            `;
+                        } else if (payment.status === 'paid_by_user') {
+                            paymentHtml = `<p><span class="badge badge-paid">Payment completed (awaiting admin) ${booking.emergency ? '(incl. surcharge)' : ''}</span></p>`;
+                        } else if (payment.status === 'approved') {
+                            paymentHtml = `<p><span class="badge badge-paid">Payment released to worker</span></p>`;
+                        }
+                    } else {
+                        paymentHtml = `<p>No payment record.</p>`;
+                    }
+
+                    if (!feedbackExists()) {
+                        feedbackHtml = `
+                            <div style="margin:15px 0;">
+                                <h4>⭐ Leave Feedback</h4>
+                                <select id="feedbackRating">
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="4">4 - Good</option>
+                                    <option value="3">3 - Average</option>
+                                    <option value="2">2 - Poor</option>
+                                    <option value="1">1 - Terrible</option>
+                                </select>
+                                <textarea id="feedbackComment" placeholder="Write your feedback (optional)" rows="3"></textarea>
+                                <button id="submitFeedbackBtn"><i class="fa-regular fa-star"></i> Submit Feedback</button>
+                            </div>
+                        `;
+                    } else {
+                        feedbackHtml = `<p><span class="badge badge-completed"><i class="fa-regular fa-circle-check"></i> Feedback already submitted</span></p>`;
+                    }
+
+                    postDiv.innerHTML = `<h3>✅ Job Completed</h3>${paymentHtml}<hr>${feedbackHtml}`;
+
+                    const loadRazorpayCheckout = () => {
+                        if (window.Razorpay) return Promise.resolve(true);
+                        if (window.__servisphereRazorpayScriptPromise) {
+                            return window.__servisphereRazorpayScriptPromise;
+                        }
+                        window.__servisphereRazorpayScriptPromise = new Promise((resolve, reject) => {
+                            const s = document.createElement('script');
+                            s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+                            s.async = true;
+                            s.onload = () => resolve(true);
+                            s.onerror = () => {
+                                window.__servisphereRazorpayScriptPromise = null;
+                                reject(new Error('Failed to load Razorpay'));
+                            };
+                            document.body.appendChild(s);
+                        });
+                        return window.__servisphereRazorpayScriptPromise;
+                    };
+
+                    document.getElementById('payNowBtn')?.addEventListener('click', async function() {
+                        const payNowBtn = document.getElementById('payNowBtn');
+                        if (!payment || payment.status !== 'pending') return;
+                        if (payNowBtn) payNowBtn.disabled = true;
+
+                        try {
+                            await loadRazorpayCheckout();
+                            const orderRes = await safeFetch(`${API_BASE}/payments/create-order`, {
+                                method: 'POST',
+                                headers: authHeaders(),
+                                body: JSON.stringify({ bookingId: booking.id })
+                            });
+                            const orderData = await orderRes.json().catch(() => ({}));
+                            if (!orderRes.ok) throw new Error(orderData.message || 'Failed to create Razorpay order');
+
+                            const options = {
+                                key: orderData.keyId,
+                                amount: Number(orderData.amount) || 100,
+                                currency: orderData.currency || 'INR',
+                                name: 'Servisphere',
+                                description: `Booking #${booking.id} (₹${Math.round((Number(orderData.amount) || 100) / 100)})`,
+                                order_id: orderData.orderId,
+                                handler: function (response) {
+                                    safeFetch(`${API_BASE}/payments/verify`, {
+                                        method: 'POST',
+                                        headers: authHeaders(),
+                                        body: JSON.stringify({ bookingId: booking.id, ...response })
+                                    })
+                                    .then((verifyRes) => verifyRes.json().then((data) => ({ ok: verifyRes.ok, data })))
+                                    .then(({ ok, data }) => {
+                                        if (!ok) {
+                                            throw new Error(data.message || 'Payment verification failed');
+                                        }
+                                        if (data.paymentStatus === 'paid') {
+                                            alert('Payment successful! Waiting for admin release.');
+                                            updateUI();
+                                        }
+                                    })
+                                    .catch((verifyError) => {
+                                        alert(verifyError.message);
+                                    });
+                                },
+                                prefill: {
+                                    email: currentUser?.email || ''
+                                },
+                                modal: {
+                                    ondismiss: function () {
+                                        if (payNowBtn) payNowBtn.disabled = false;
+                                        alert('Payment popup closed. No payment was made.');
+                                    }
+                                },
+                                theme: { color: '#0aa2ff' }
+                            };
+
+                            const rzp = new window.Razorpay(options);
+                            rzp.on('payment.failed', function (resp) {
+                                if (payNowBtn) payNowBtn.disabled = false;
+                                const reason =
+                                    resp?.error?.description ||
+                                    resp?.error?.reason ||
+                                    resp?.error?.code ||
+                                    'Payment failed. Please try again.';
+                                alert(`Payment failed: ${reason}`);
+                            });
+                            rzp.open();
+                        } catch (error) {
+                            if (payNowBtn) payNowBtn.disabled = false;
+                            alert(error.message);
+                        }
+                    });
+
+                    document.getElementById('submitFeedbackBtn')?.addEventListener('click', async function() {
+                        const rating = document.getElementById('feedbackRating').value;
+                        const comment = document.getElementById('feedbackComment').value;
+                        try {
+                            const res = await fetch(`${API_BASE}/feedback`, {
+                                method: 'POST',
+                                headers: authHeaders(),
+                                body: JSON.stringify({ bookingId: booking.id, rating: parseInt(rating), comment })
+                            });
+                            const d = await res.json().catch(() => ({}));
+                            if (!res.ok) { alert(d.message || 'Could not submit feedback.'); return; }
+                            alert('Feedback submitted. Thank you!');
+                            updateUI();
+                        } catch (e) {
+                            alert('Could not reach the server. Please try again.');
+                        }
+                    });
+                } else {
+                    postDiv.style.display = 'none';
+                    notificationDiv.style.display = 'none';
+                }
+
+                if (!trackMap) {
+                    if (booking.userLocation && booking.userLocation.lat && booking.userLocation.lng) {
+                        initTrackMap(booking.userLocation.lat, booking.userLocation.lng);
+                        reverseGeocode(booking.userLocation.lat, booking.userLocation.lng).then(name => {
+                            document.getElementById('locationName').innerHTML = `📍 ${name}`;
+                        });
+                    } else {
+                        updateUserLocation();
+                    }
+                } else {
+                    if (booking.userLocation && booking.userLocation.lat && booking.userLocation.lng && userMarker) {
+                        userMarker.setLatLng([booking.userLocation.lat, booking.userLocation.lng]);
+                    }
+                }
+                startUserGeoWatch();
+                updateWorkerMarker();
+                updateConfirmButton();
+                updateEmergencyToggleButton();
+            }
+
+            document.getElementById('manualMapBtn').addEventListener('click', function() {
+                mapClickActive = true;
+                document.getElementById('mapClickHint').style.display = 'inline-block';
+                setTimeout(() => {
+                    mapClickActive = false;
+                    document.getElementById('mapClickHint').style.display = 'none';
+                }, 30000);
+            });
+
+            window.refreshStatus = function() { updateUI(); };
+            window.updateUserLocation = updateUserLocation;
+
+            // initial update
+            updateUI();
+            const uiRefreshInterval = setInterval(updateUI, 10000);
+            window.addEventListener('beforeunload', () => {
+                clearInterval(uiRefreshInterval);
+                if (chatPollInterval) clearInterval(chatPollInterval);
+                if (userWatchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(userWatchId);
+                if (socket) socket.disconnect();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,447 @@
+{
+  "info": {
+    "name": "Servisphere API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "userToken", "value": "" },
+    { "key": "userRefreshToken", "value": "" },
+    { "key": "workerToken", "value": "" },
+    { "key": "adminToken", "value": "" },
+    { "key": "bookingId", "value": "" },
+    { "key": "workerId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth (existing OTP + new login)",
+      "item": [
+        {
+          "name": "Send OTP (existing)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/send-otp",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"role\": \"user\"\n}" }
+          }
+        },
+        {
+          "name": "Signup User (existing)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/signup/user",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123\",\n  \"otp\": \"123456\"\n}" }
+          }
+        },
+        {
+          "name": "Login User (new)",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('userToken', pm.response.json().token);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login/user",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "Login Worker (new)",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('workerToken', pm.response.json().token);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login/worker",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"testworker@example.com\",\n  \"password\": \"Password123\"\n}" }
+          }
+        },
+        {
+          "name": "Login Admin / Special Admin (new)",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('adminToken', pm.response.json().token);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/login/admin",
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"admin@servisphere.com\",\n  \"password\": \"admin123\"\n}" }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  pm.collectionVariables.set('userToken', pm.response.json().token);",
+              "  pm.collectionVariables.set('userRefreshToken', pm.response.json().refreshToken);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/refresh",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{userRefreshToken}}\"\n}" }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{baseUrl}}/api/auth/logout",
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{userRefreshToken}}\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/users/me"
+          }
+        },
+        {
+          "name": "Update My Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/users/me",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Test User\",\n  \"phone\": \"9999999999\",\n  \"city\": \"Madurai\"\n}" }
+          }
+        },
+        {
+          "name": "List Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/api/users?page=1&limit=20&search=&sort=createdAt:desc"
+          }
+        },
+        {
+          "name": "Block/Unblock User (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/users/:id/block",
+            "body": { "mode": "raw", "raw": "{\n  \"isBlocked\": true\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workers",
+      "item": [
+        {
+          "name": "Get My Worker Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }],
+            "url": "{{baseUrl}}/api/workers/me"
+          }
+        },
+        {
+          "name": "Set My Availability",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{workerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/workers/me/availability",
+            "body": { "mode": "raw", "raw": "{\n  \"isAvailable\": true,\n  \"isOnline\": true\n}" }
+          }
+        },
+        {
+          "name": "List Workers (city+availability filter)",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 200) {",
+              "  const list = pm.response.json().data;",
+              "  if (list && list.length) pm.collectionVariables.set('workerId', list[0].id);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/workers?city=Madurai&isAvailable=true&isOnline=true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Bookings",
+      "item": [
+        {
+          "name": "Create Booking",
+          "event": [{
+            "listen": "test",
+            "script": { "exec": [
+              "if (pm.response.code === 201) {",
+              "  pm.collectionVariables.set('bookingId', pm.response.json().id);",
+              "}"
+            ]}
+          }],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/bookings",
+            "body": { "mode": "raw", "raw": "{\n  \"workerId\": \"{{workerId}}\",\n  \"date\": \"2026-08-01\",\n  \"timeSlot\": \"10:00 AM\",\n  \"location\": { \"lat\": 9.9252, \"lng\": 78.1198, \"address\": \"Madurai\" },\n  \"emergency\": false\n}" }
+          }
+        },
+        {
+          "name": "List My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/bookings?page=1&limit=20"
+          }
+        },
+        {
+          "name": "Update Booking Status (Worker)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{workerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"accepted\"\n}" }
+          }
+        },
+        {
+          "name": "Cancel Booking (User)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/cancel",
+            "body": { "mode": "raw", "raw": "{\n  \"reason\": \"Change of plans\"\n}" }
+          }
+        },
+        {
+          "name": "Update Live Location (Worker)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{workerToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/location",
+            "body": { "mode": "raw", "raw": "{\n  \"lat\": 9.93,\n  \"lng\": 78.12\n}" }
+          }
+        },
+        {
+          "name": "Get Live Location (User)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/bookings/{{bookingId}}/location"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Feedback",
+      "item": [
+        {
+          "name": "Create Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/feedback",
+            "body": { "mode": "raw", "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"rating\": 5,\n  \"comment\": \"Great service!\"\n}" }
+          }
+        },
+        {
+          "name": "List Feedback",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/feedback"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments Ledger",
+      "item": [
+        {
+          "name": "Create Payment Record",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/payments-data",
+            "body": { "mode": "raw", "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"amount\": 200,\n  \"status\": \"paid_by_user\"\n}" }
+          }
+        },
+        {
+          "name": "List My Payments (Worker)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }],
+            "url": "{{baseUrl}}/api/payments-data"
+          }
+        },
+        {
+          "name": "Approve Payment (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/payments-data/:id/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payouts",
+      "item": [
+        {
+          "name": "Request Payout (Worker)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }],
+            "url": "{{baseUrl}}/api/payouts"
+          }
+        },
+        {
+          "name": "List Payouts",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{workerToken}}" }],
+            "url": "{{baseUrl}}/api/payouts"
+          }
+        },
+        {
+          "name": "Approve/Reject Payout (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/payouts/:id/status",
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Get Chat Thread",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{userToken}}" }],
+            "url": "{{baseUrl}}/api/chat/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Send Message (User/Worker)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/chat/{{bookingId}}",
+            "body": { "mode": "raw", "raw": "{\n  \"message\": \"Hi, on my way!\"\n}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard Aggregate",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{adminToken}}" }],
+            "url": "{{baseUrl}}/api/admin/dashboard"
+          }
+        },
+        {
+          "name": "Admin Reply to Chat",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/admin/chat",
+            "body": { "mode": "raw", "raw": "{\n  \"bookingId\": \"{{bookingId}}\",\n  \"message\": \"We're looking into it.\"\n}" }
+          }
+        },
+        {
+          "name": "Create Admin Account (Special Admin only)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/admin",
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"New Admin\",\n  \"email\": \"newadmin@servisphere.com\",\n  \"password\": \"AdminPass123\",\n  \"role\": \"admin\"\n}" }
+          }
+        }
+      ]
+    }
+  ]
+}

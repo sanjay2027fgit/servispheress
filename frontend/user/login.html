@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User Login | Servisphere</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top, #0f2027, #000000);
+            overflow: hidden;
+        }
+
+        /* neon glow blobs */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #00bfff, transparent 60%);
+            top: -120px;
+            left: -120px;
+            filter: blur(80px);
+            opacity: 0.7;
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #ff3cac, transparent 60%);
+            bottom: -120px;
+            right: -120px;
+            filter: blur(90px);
+            opacity: 0.6;
+            animation: float 7s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(30px); }
+        }
+
+        .login-card {
+            position: relative;
+            width: 100%;
+            max-width: 360px;
+            padding: 35px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(14px);
+            box-shadow:
+                0 0 20px rgba(0, 191, 255, 0.6),
+                0 0 50px rgba(255, 60, 172, 0.25);
+            color: white;
+            z-index: 1;
+            animation: fadeIn 0.8s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #00bfff, #ff3cac);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 191, 255, 0.7);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            box-shadow: 0 0 12px rgba(0, 191, 255, 0.9);
+        }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #000;
+            background: linear-gradient(135deg, #00bfff, #ff3cac);
+            box-shadow:
+                0 0 20px rgba(0, 191, 255, 0.8),
+                0 0 30px rgba(255, 60, 172, 0.6);
+            transition: 0.3s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 0 30px rgba(0, 191, 255, 1),
+                0 0 40px rgba(255, 60, 172, 0.9);
+        }
+
+        .signup-link {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .signup-link a {
+            color: #00bfff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .signup-link a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <h2>User Login</h2>
+
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email address" required>
+            <input type="password" id="password" placeholder="Password" required>
+
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="signup-link">
+            Don’t have an account?
+            <a href="signup.html">Signup</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api/auth`;
+        })();
+
+        document.getElementById('loginForm').onsubmit = async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/login/user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    alert(data.message || 'Invalid credentials');
+                    return;
+                }
+
+                localStorage.setItem('userToken', data.token);
+                localStorage.setItem('userRefreshToken', data.refreshToken);
+                localStorage.setItem('currentUser', JSON.stringify(data.user));
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                alert('Could not reach the server. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>
