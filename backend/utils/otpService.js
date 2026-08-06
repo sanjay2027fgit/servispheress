@@ -1,9 +1,37 @@
 const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const OTP = require('../models/OTP');
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
+
+// SMTP Configuration
+const SMTP_HOST = process.env.EMAIL_HOST;
+const SMTP_PORT = Number(process.env.EMAIL_PORT) || 587;
+const SMTP_SECURE = String(process.env.EMAIL_SECURE || 'false').toLowerCase() === 'true';
+const SMTP_USER = process.env.EMAIL_USER;
+const SMTP_PASS = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD;
+const SMTP_FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+
+const isSmtpConfigured = Boolean(SMTP_HOST && SMTP_PORT && SMTP_USER && SMTP_PASS && SMTP_FROM);
+
+const getSmtpTransport = () => {
+  if (!isSmtpConfigured) {
+    throw new Error('SMTP not configured: set EMAIL_HOST, EMAIL_PORT, EMAIL_USER, EMAIL_PASS / EMAIL_PASSWORD, and EMAIL_FROM');
+  }
+
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure: SMTP_SECURE,
+    requireTLS: true,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS
+    }
+  });
+};
 
 // Resend Configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -23,9 +51,9 @@ const getResendClient = () => {
 };
 
 if (process.env.NODE_ENV === 'production') {
-  console.log('📧 Email Service: Resend (Cloud-based)');
-  console.log('📧 RESEND_API_KEY configured:', !!RESEND_API_KEY);
-  console.log('📧 EMAIL_FROM:', EMAIL_FROM);
+  console.log('📧 Email Service: SMTP configured:', isSmtpConfigured);
+  console.log('📧 Email Service: Resend configured:', !!RESEND_API_KEY);
+  console.log('📧 EMAIL_FROM:', SMTP_FROM || EMAIL_FROM);
 }
 
 const normalizeEmail = (email = '') => email.trim().toLowerCase();
@@ -69,18 +97,41 @@ const sendViaResend = async ({ to, subject, html, text }) => {
   throw lastError || new Error('Failed to send email via Resend');
 };
 
+const sendViaSmtp = async ({ to, subject, html, text }) => {
+  const transporter = getSmtpTransport();
+  const mailOptions = {
+    from: SMTP_FROM,
+    to,
+    subject,
+    text,
+    html
+  };
+
+  const info = await transporter.sendMail(mailOptions);
+  return { response: info, from: SMTP_FROM };
+};
+
+const sendEmail = async ({ to, subject, html, text }) => {
+  if (isSmtpConfigured) {
+    return sendViaSmtp({ to, subject, html, text });
+  }
+
+  const { response, from } = await sendViaResend({ to, subject, html, text });
+  return { response, from };
+};
+
 // Uses crypto for predictable-length, secure numeric OTP generation.
 const generateSecureOtp = () => crypto.randomInt(100000, 1000000).toString();
 
 const sendOtpEmail = async (email, otp) => {
-  if (!RESEND_API_KEY) {
-    const message = 'Email service not configured: missing RESEND_API_KEY';
+  if (!isSmtpConfigured && !RESEND_API_KEY) {
+    const message = 'Email service not configured: missing SMTP or Resend config';
     console.error(`❌ ${message}`);
     throw new Error(message);
   }
 
   try {
-    const { response, from } = await sendViaResend({
+    const { response, from } = await sendEmail({
       to: email,
       subject: 'Verify Your Email – OTP',
       html: `
@@ -96,7 +147,7 @@ const sendOtpEmail = async (email, otp) => {
       text: `Your Servisphere verification OTP is ${otp}. It expires in 5 minutes. Do not share it with anyone.`
     });
 
-    console.log('✅ OTP Email sent successfully via Resend. ID:', response.data?.id, 'From:', from);
+    console.log('✅ OTP Email sent successfully. From:', from, 'Response ID:', response?.messageId || response.data?.id);
     return response;
     
   } catch (error) {
@@ -107,12 +158,12 @@ const sendOtpEmail = async (email, otp) => {
 };
 
 const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
-  if (!RESEND_API_KEY) {
-    throw new Error('Email service not configured: missing RESEND_API_KEY');
+  if (!isSmtpConfigured && !RESEND_API_KEY) {
+    throw new Error('Email service not configured: missing SMTP or Resend config');
   }
 
   try {
-    const { response, from } = await sendViaResend({
+    const { response, from } = await sendEmail({
       to: email,
       subject: `Servisphere Arrival Verification OTP - Booking #${bookingId}`,
       html: `
@@ -131,7 +182,7 @@ const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
       text: `Your service worker has arrived. OTP: ${otp}. Booking ID: ${bookingId}. Service: ${serviceName || 'General Service'}. This OTP expires in 5 minutes.`
     });
 
-    console.log('✅ Arrival OTP Email sent successfully via Resend. ID:', response.data?.id, 'From:', from);
+    console.log('✅ Arrival OTP Email sent successfully. From:', from, 'Response ID:', response?.messageId || response.data?.id);
     return response;
     
   } catch (error) {
