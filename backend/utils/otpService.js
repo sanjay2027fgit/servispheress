@@ -5,16 +5,20 @@ const OTP = require('../models/OTP');
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
-// Only trim leading/trailing spaces, preserve internal spaces (important for Google App Passwords)
-const trimCredential = (value) => String(value || '').trim();
 // Remove all spaces for email addresses (no internal spaces in emails)
 const sanitizeEmail = (value) => String(value || '').replace(/\s/g, '').toLowerCase().trim();
+
+// Get password - preserve spaces but also remove them if the env var came with spaces trimmed
+const getRawPassword = () => {
+  const raw = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
+  return String(raw).trim();
+};
 
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
 const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true' || EMAIL_PORT === 465;
 const EMAIL_USER = sanitizeEmail(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
-const EMAIL_PASS = trimCredential(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD);
+const EMAIL_PASS = getRawPassword();
 const EMAIL_FROM = sanitizeEmail(process.env.EMAIL_FROM || EMAIL_USER);
 // Force IPv4 by default (Render & many hosts have IPv6 connectivity issues with Gmail SMTP)
 // Override with EMAIL_IPV6=true if needed for your deployment
@@ -27,9 +31,12 @@ if (process.env.NODE_ENV === 'production') {
     emailUser: EMAIL_USER ? EMAIL_USER.substring(0, 10) + '...' : 'MISSING',
     hasEmailPass: !!EMAIL_PASS,
     passLength: EMAIL_PASS ? EMAIL_PASS.length : 0,
+    passHasSpaces: EMAIL_PASS ? EMAIL_PASS.includes(' ') : false,
     hasEmailFrom: !!EMAIL_FROM,
+    emailFrom: EMAIL_FROM,
     host: EMAIL_HOST,
     port: EMAIL_PORT,
+    secure: EMAIL_SECURE,
     useIPv4Only: USE_IPV4_ONLY
   });
 }
@@ -109,12 +116,47 @@ const sendOtpEmail = async (email, otp) => {
 
   try {
     const transporter = getTransporter();
-    await transporter.verify();
-    await transporter.sendMail(mailOptions);
+    
+    // Verify SMTP connection (optional - some hosts block this)
+    let verifyPassed = false;
+    try {
+      await transporter.verify();
+      console.log('✅ SMTP verification passed');
+      verifyPassed = true;
+    } catch (verifyError) {
+      console.warn('⚠️ SMTP verification failed (host may block verify):', verifyError.message);
+      console.warn('📧 Attempting to send anyway...');
+    }
+    
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ OTP Email sent successfully. Message ID:', info.messageId);
+    
   } catch (error) {
-    const message = error?.message || 'Failed to send OTP email';
-    console.error('❌ Email send error:', message);
-    throw new Error(message);
+    const errorDetails = {
+      message: error?.message || 'Failed to send OTP email',
+      code: error?.code,
+      command: error?.command,
+      errno: error?.errno,
+      syscall: error?.syscall
+    };
+    
+    console.error('❌ Email send error:', JSON.stringify(errorDetails, null, 2));
+    
+    if (process.env.NODE_ENV === 'production') {
+      console.error('📧 SMTP Debug Info:', {
+        host: EMAIL_HOST,
+        port: EMAIL_PORT,
+        secure: EMAIL_SECURE,
+        userEmail: EMAIL_USER.substring(0, 10) + '...',
+        passLength: EMAIL_PASS.length,
+        passHasSpaces: EMAIL_PASS.includes(' '),
+        fromEmail: EMAIL_FROM,
+        recipientEmail: email
+      });
+    }
+    
+    throw new Error(errorDetails.message);
   }
 };
 
