@@ -12,7 +12,9 @@ const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true' || EMAIL_PORT === 465;
 const EMAIL_USER = sanitizeCredential(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
 const EMAIL_PASS = sanitizeCredential(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD);
 const EMAIL_FROM = sanitizeCredential(process.env.EMAIL_FROM || EMAIL_USER);
-const EMAIL_IPV6 = process.env.EMAIL_IPV6 === 'true';
+// Force IPv4 by default (Render & many hosts have IPv6 connectivity issues with Gmail SMTP)
+// Override with EMAIL_IPV6=true if needed for your deployment
+const USE_IPV4_ONLY = process.env.EMAIL_IPV6 !== 'true';
 
 let transporter;
 
@@ -39,7 +41,7 @@ const getTransporter = () => {
       tls: {
         rejectUnauthorized: false,
       },
-      family: EMAIL_IPV6 ? 6 : 4
+      family: USE_IPV4_ONLY ? 4 : 6
     };
 
     if (!EMAIL_SECURE) {
@@ -53,7 +55,7 @@ const getTransporter = () => {
         port: transportConfig.port,
         secure: transportConfig.secure,
         requireTLS: transportConfig.requireTLS,
-        family: transportConfig.family,
+        family: transportConfig.family === 4 ? 'IPv4' : 'IPv6',
       });
     }
   }
