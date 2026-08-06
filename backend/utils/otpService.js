@@ -5,18 +5,21 @@ const OTP = require('../models/OTP');
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
+const sanitizeCredential = (value) => String(value || '').replace(/\s+/g, '').trim();
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
 const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true' || EMAIL_PORT === 465;
-const EMAIL_FROM = process.env.EMAIL_FROM || process.env.EMAIL_USER;
+const EMAIL_USER = sanitizeCredential(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
+const EMAIL_PASS = sanitizeCredential(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD);
+const EMAIL_FROM = sanitizeCredential(process.env.EMAIL_FROM || EMAIL_USER);
 const EMAIL_IPV6 = process.env.EMAIL_IPV6 === 'true';
 
 let transporter;
 
 const getTransporter = () => {
   if (!transporter) {
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      throw new Error('Email service is not configured: missing EMAIL_USER or EMAIL_PASS');
+    if (!EMAIL_USER || !EMAIL_PASS) {
+      throw new Error('Email service is not configured: missing EMAIL_USER/EMAIL_PASSWORD or EMAIL_PASS');
     }
     if (!EMAIL_FROM) {
       throw new Error('Email service is not configured: missing EMAIL_FROM or EMAIL_USER');
@@ -27,8 +30,8 @@ const getTransporter = () => {
       port: EMAIL_PORT,
       secure: EMAIL_SECURE,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: EMAIL_USER,
+        pass: EMAIL_PASS,
       },
       connectionTimeout: 30000,
       greetingTimeout: 30000,
@@ -63,40 +66,35 @@ const normalizeEmail = (email = '') => email.trim().toLowerCase();
 const generateSecureOtp = () => crypto.randomInt(100000, 1000000).toString();
 
 const sendOtpEmail = async (email, otp) => {
-  // For development/testing: if email service is not configured, log OTP to console
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn(`⚠️ [DEV MODE] OTP for ${email}: ${otp}`);
-    return;
+  if (!EMAIL_USER || !EMAIL_PASS) {
+    const message = 'Email service is not configured: missing SMTP credentials';
+    console.error(`⚠️ ${message}`);
+    throw new Error(message);
   }
 
   const mailOptions = {
     from: EMAIL_FROM,
     to: email,
-    subject: 'Servisphere - Your OTP Code',
-    text: `Your OTP for Servisphere signup is: ${otp}. It will expire in 5 minutes.`,
+    subject: 'Verify Your Email – OTP',
+    text: `Your Servisphere verification OTP is ${otp}. It expires in 5 minutes. Do not share it with anyone.`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #007bff;">Welcome to Servisphere!</h2>
-        <p>Your One-Time Password (OTP) for signup is:</p>
+        <h2 style="color: #007bff;">Verify Your Email</h2>
+        <p>Your Servisphere verification OTP is:</p>
         <h1 style="background: #f4f4f4; padding: 10px; border-radius: 5px; text-align: center; letter-spacing: 5px;">${otp}</h1>
-        <p>This OTP is valid for 5 minutes. Do not share it with anyone.</p>
+        <p>This OTP expires in 5 minutes. Please do not share it.</p>
       </div>
     `
   };
 
   try {
     const transporter = getTransporter();
-    console.log(`📧 Sending OTP email to ${email}...`);
+    await transporter.verify();
     await transporter.sendMail(mailOptions);
-    console.log(`✅ OTP email sent to ${email}`);
   } catch (error) {
-    console.error('❌ Email send error:', error.message);
-    // In dev mode, still allow signup with console-logged OTP
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn(`\n⚠️ [DEV MODE FALLBACK] OTP for ${email}: ${otp}\n`);
-      return;
-    }
-    throw error;
+    const message = error?.message || 'Failed to send OTP email';
+    console.error('❌ Email send error:', message);
+    throw new Error(message);
   }
 };
 
@@ -165,6 +163,7 @@ const verifyOtpForEmail = async (email, otp) => {
     return { ok: false, reason: 'invalid' };
   }
 
+  await OTP.deleteOne({ email: normalizedEmail });
   return { ok: true };
 };
 

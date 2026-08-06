@@ -197,14 +197,13 @@
             const isLocalFile = window.location.protocol === 'file:';
             const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
             const host = window.location.hostname;
-            
+
             if (isLocalFile || isLocalHost) {
                 return 'http://localhost:5000/api/auth';
             }
             if (host === 'servispheress.netlify.app') {
                 return 'https://servisphere-api.onrender.com/api/auth';
             }
-            // Fallback for other deployments
             return `${window.location.origin}/api/auth`;
         })();
         let cooldownTimer = null;
@@ -252,7 +251,7 @@
                 sendOtpBtn.disabled = true;
                 sendOtpBtn.textContent = 'Sending OTP...';
                 await postJson(`${API_BASE}/send-otp`, { email, role: 'user' });
-                alert('OTP sent to your Gmail successfully.');
+                alert('OTP sent successfully to your email address.');
                 startCooldown(60);
             } catch (error) {
                 const retryMatch = error.message.match(/(\d+)/);

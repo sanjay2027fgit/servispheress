@@ -47,19 +47,18 @@ const sendOtp = async (req, res) => {
       });
     }
 
-    // Sends a real Gmail OTP via Nodemailer using env credentials.
-    // Wrap with timeout to prevent hanging requests
     const emailTimeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Email sending timeout')), 40000)
     );
-    
+
     try {
       await Promise.race([sendOtpEmail(normalizedEmail, otpResult.otp), emailTimeout]);
-      res.status(200).json({ message: 'OTP sent successfully to email' });
+      return res.status(200).json({ message: 'OTP sent successfully to your email' });
     } catch (emailError) {
-      // Log error but don't fail - OTP was still created in DB and can be used even if email fails
-      console.warn('OTP email send failed, but OTP is still valid in database:', emailError.message);
-      res.status(200).json({ message: 'OTP created (check inbox or backend console)' });
+      console.error('OTP email delivery failed:', emailError.message);
+      return res.status(502).json({
+        message: 'Unable to send OTP email right now. Please verify the SMTP configuration or try again later.'
+      });
     }
   } catch (error) {
     console.error('Error in sendOtp:', error);

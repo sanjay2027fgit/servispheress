@@ -573,7 +573,7 @@
             const isLocalFile = window.location.protocol === 'file:';
             const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
             const host = window.location.hostname;
-            
+
             if (isLocalFile || isLocalHost) {
                 return 'http://localhost:5000/api/auth';
             }
@@ -631,7 +631,7 @@
                 sendOtpBtn.disabled = true;
                 sendOtpBtn.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Sending OTP...`;
                 await postJson(`${API_BASE}/send-otp`, { email, role: 'worker' });
-                showToast('✨ OTP sent successfully to your Gmail! (Valid for 5 min)', false);
+                showToast('✨ OTP sent successfully to your email address! (Valid for 5 min)', false);
                 startCooldown(60);
             } catch (error) {
                 let errMsg = error.message;
