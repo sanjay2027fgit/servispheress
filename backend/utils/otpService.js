@@ -5,16 +5,34 @@ const OTP = require('../models/OTP');
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
-const sanitizeCredential = (value) => String(value || '').replace(/\s+/g, '').trim();
+// Only trim leading/trailing spaces, preserve internal spaces (important for Google App Passwords)
+const trimCredential = (value) => String(value || '').trim();
+// Remove all spaces for email addresses (no internal spaces in emails)
+const sanitizeEmail = (value) => String(value || '').replace(/\s/g, '').toLowerCase().trim();
+
 const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
 const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
 const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true' || EMAIL_PORT === 465;
-const EMAIL_USER = sanitizeCredential(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
-const EMAIL_PASS = sanitizeCredential(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD);
-const EMAIL_FROM = sanitizeCredential(process.env.EMAIL_FROM || EMAIL_USER);
+const EMAIL_USER = sanitizeEmail(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
+const EMAIL_PASS = trimCredential(process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD);
+const EMAIL_FROM = sanitizeEmail(process.env.EMAIL_FROM || EMAIL_USER);
 // Force IPv4 by default (Render & many hosts have IPv6 connectivity issues with Gmail SMTP)
 // Override with EMAIL_IPV6=true if needed for your deployment
 const USE_IPV4_ONLY = process.env.EMAIL_IPV6 !== 'true';
+
+// Debug: Log env var status on startup
+if (process.env.NODE_ENV === 'production') {
+  console.log('📧 SMTP Config Check:', {
+    hasEmailUser: !!EMAIL_USER,
+    emailUser: EMAIL_USER ? EMAIL_USER.substring(0, 10) + '...' : 'MISSING',
+    hasEmailPass: !!EMAIL_PASS,
+    passLength: EMAIL_PASS ? EMAIL_PASS.length : 0,
+    hasEmailFrom: !!EMAIL_FROM,
+    host: EMAIL_HOST,
+    port: EMAIL_PORT,
+    useIPv4Only: USE_IPV4_ONLY
+  });
+}
 
 let transporter;
 
