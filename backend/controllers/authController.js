@@ -55,22 +55,15 @@ const sendOtp = async (req, res) => {
     
     try {
       await Promise.race([sendOtpEmail(normalizedEmail, otpResult.otp), emailTimeout]);
+      res.status(200).json({ message: 'OTP sent successfully to email' });
     } catch (emailError) {
-      // Delete the OTP if email fails
-      await clearOtp(normalizedEmail);
-      throw emailError;
+      // Log error but don't fail - OTP was still created in DB and can be used even if email fails
+      console.warn('OTP email send failed, but OTP is still valid in database:', emailError.message);
+      res.status(200).json({ message: 'OTP created (check inbox or backend console)' });
     }
-
-    res.status(200).json({ message: 'OTP sent successfully to email' });
   } catch (error) {
     console.error('Error in sendOtp:', error);
-    if (error && error.code === 'EAUTH') {
-      return res.status(500).json({ message: 'Email service authentication failed' });
-    }
-    if (error?.message?.includes('timeout')) {
-      return res.status(504).json({ message: 'Email service timeout. Please try again later.' });
-    }
-    return res.status(500).json({ message: error?.message || 'Failed to send OTP email' });
+    return res.status(500).json({ message: error?.message || 'Failed to create OTP' });
   }
 };
 

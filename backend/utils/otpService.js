@@ -86,12 +86,14 @@ const sendOtpEmail = async (email, otp) => {
 
   try {
     const transporter = getTransporter();
+    console.log(`📧 Sending OTP email to ${email}...`);
     await transporter.sendMail(mailOptions);
+    console.log(`✅ OTP email sent to ${email}`);
   } catch (error) {
-    console.error('Email send error:', error.message);
+    console.error('❌ Email send error:', error.message);
     // In dev mode, still allow signup with console-logged OTP
     if (process.env.NODE_ENV !== 'production') {
-      console.warn(`⚠️ [DEV MODE FALLBACK] OTP for ${email}: ${otp}`);
+      console.warn(`\n⚠️ [DEV MODE FALLBACK] OTP for ${email}: ${otp}\n`);
       return;
     }
     throw error;

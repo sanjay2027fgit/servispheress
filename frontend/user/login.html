@@ -170,12 +170,15 @@
         const API_BASE = (() => {
             const isLocalFile = window.location.protocol === 'file:';
             const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-            const backendOrigin = (function() {
-                const host = window.location.hostname;
-                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
-                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
-            })();
-            return `${backendOrigin}/api/auth`;
+            const host = window.location.hostname;
+            
+            if (isLocalFile || isLocalHost) {
+                return 'http://localhost:5000/api/auth';
+            }
+            if (host === 'servispheress.netlify.app') {
+                return 'https://servisphere-api.onrender.com/api/auth';
+            }
+            return `${window.location.origin}/api/auth`;
         })();
 
         document.getElementById('loginForm').onsubmit = async function (e) {
