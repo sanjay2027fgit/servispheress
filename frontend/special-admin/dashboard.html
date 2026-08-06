@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Special Admin · Crimson Vault | Emergency Surcharge Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', 'Poppins', system-ui, sans-serif;
+        }
+
+        /* Animated crimson gradient background */
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #2a0a0a, #0a0202);
+            position: relative;
+            overflow-x: hidden;
+            padding: 30px 35px;
+        }
+
+        /* moving aurora effect */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 40% 50%, rgba(180, 30, 30, 0.25), rgba(0,0,0,0) 60%);
+            animation: slowDrift 18s infinite alternate;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes slowDrift {
+            0% { transform: translate(0%, 0%) rotate(0deg); opacity: 0.4; }
+            100% { transform: translate(10%, 8%) rotate(4deg); opacity: 0.8; }
+        }
+
+        /* floating glass particles */
+        .floating-dust {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            background-image: radial-gradient(2px 2px at 15px 40px, rgba(255,80,80,0.4), transparent),
+                              radial-gradient(3px 3px at 70px 200px, rgba(255,120,120,0.3), transparent);
+            background-size: 300px 300px, 400px 400px;
+            background-repeat: repeat;
+            opacity: 0.5;
+            animation: floatSpark 35s linear infinite;
+            z-index: 0;
+        }
+
+        @keyframes floatSpark {
+            0% { background-position: 0 0; }
+            100% { background-position: 500px 500px; }
+        }
+
+        /* glassmorphic red theme */
+        .glass-red {
+            background: rgba(30, 12, 12, 0.6);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(220, 60, 60, 0.5);
+            border-radius: 40px;
+            box-shadow: 0 20px 35px -12px rgba(200, 0, 0, 0.4), 0 0 0 1px rgba(255,80,80,0.2) inset;
+            transition: all 0.2s;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 18px 32px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .header h1 {
+            font-size: 2.4rem;
+            font-weight: 600;
+            background: linear-gradient(145deg, #ffb8b8, #ff4d4d, #cc2b2b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px #ff4d4d80;
+            letter-spacing: -0.5px;
+        }
+
+        .badge-root {
+            background: linear-gradient(145deg, #b11f1f, #7a1212);
+            padding: 6px 20px;
+            border-radius: 60px;
+            font-weight: 700;
+            color: #ffe2e2;
+            border: 1px solid #ff8080;
+            box-shadow: 0 0 12px #ff4d4d;
+        }
+
+        .logout-btn {
+            background: rgba(180, 40, 40, 0.2);
+            border: 1.5px solid #ff6b6b;
+            color: #ffc6c6;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            backdrop-filter: blur(8px);
+        }
+
+        .logout-btn:hover {
+            background: #ff4d4d;
+            color: #0a0303;
+            box-shadow: 0 0 30px #ff4d4d;
+            border-color: #fff0f0;
+            transform: translateY(-2px);
+        }
+
+        /* metric cards */
+        .metric-row {
+            display: flex;
+            gap: 28px;
+            margin-bottom: 45px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 3;
+        }
+
+        .metric-card {
+            background: rgba(20, 8, 8, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 70, 70, 0.5);
+            border-radius: 28px;
+            padding: 22px 28px;
+            flex: 1 1 200px;
+            transition: 0.2s;
+        }
+
+        .metric-card:hover {
+            border-color: #ff5e5e;
+            box-shadow: 0 0 28px #ff333380;
+            transform: translateY(-4px);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #f0bcbc;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            background: linear-gradient(145deg, #ffcfcf, #ff8080);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 12px #ff5e5e;
+        }
+
+        /* main card */
+        .card {
+            background: rgba(22, 10, 10, 0.7);
+            backdrop-filter: blur(16px);
+            border-radius: 42px;
+            padding: 28px 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(220, 60, 60, 0.6);
+            box-shadow: 0 25px 40px -12px #b71c1c40;
+            position: relative;
+            z-index: 3;
+        }
+
+        .card h2 {
+            font-size: 2rem;
+            font-weight: 500;
+            border-left: 6px solid #ff4d4d;
+            padding-left: 22px;
+            margin-bottom: 28px;
+            color: #ffdbdb;
+            text-shadow: 0 0 6px #cc4444;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 28px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid #a03333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: #f5e2e2;
+        }
+
+        th {
+            background: rgba(180, 40, 40, 0.35);
+            color: #ffbfbf;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 1.5px;
+            padding: 16px 12px;
+            border-bottom: 2px solid #ff5e5e;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid rgba(220, 80, 80, 0.3);
+            background: rgba(25, 12, 12, 0.6);
+        }
+
+        tr:hover td {
+            background: rgba(180, 60, 60, 0.2);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.7rem;
+            background: #2e1a1a;
+            color: #ffb5b5;
+            border: 1px solid #ff6666;
+        }
+
+        .badge-emergency {
+            background: #4d1a1a;
+            color: #ffb3b3;
+            border-color: #ff4d4d;
+            box-shadow: 0 0 8px #ff0000;
+        }
+
+        .badge-paid_by_user {
+            background: #1e3a5e;
+            color: #bfdbfe;
+            border-color: #3b82f6;
+        }
+
+        .approve-btn {
+            background: linear-gradient(145deg, #b71c1c, #8b1a1a);
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 36px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 0 12px #ff4444;
+        }
+
+        .approve-btn:hover {
+            background: #ff4d4d;
+            box-shadow: 0 0 20px #ff8888;
+            transform: scale(1.02);
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 35px;
+            color: #cfa5a5;
+            font-style: italic;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            text-align: right;
+            color: #c77a7a;
+            font-size: 0.8rem;
+            border-top: 1px dashed #ff6666;
+            padding-top: 20px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .gold-accent {
+            color: #ffaaaa;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="floating-dust"></div>
+
+<div class="header glass-red">
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h1>💰 CRIMSON ADMIN · CHARGE VAULT</h1>
+        <span class="badge-root">EMERGENCY CONTROL</span>
+    </div>
+    <button class="logout-btn" id="logoutBtn">✖ SIGN OUT</button>
+</div>
+
+<!-- Metrics -->
+<div class="metric-row">
+    <div class="metric-card">
+        <div class="metric-label">Pending release (user paid)</div>
+        <div class="metric-value" id="pendingReleaseCount">0</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Total approved (released)</div>
+        <div class="metric-value" id="totalApprovedCount">0</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Total revenue (platform)</div>
+        <div class="metric-value" id="totalRevenue">₹0</div>
+    </div>
+</div>
+
+<!-- Pending approval table -->
+<div class="card">
+    <h2>⏳ AWAITING MANUAL RELEASE (paid by user)</h2>
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th>Payment ID</th>
+                    <th>Booking ID</th>
+                    <th>Worker</th>
+                    <th>User</th>
+                    <th>Mode</th>
+                    <th>Base (₹)</th>
+                    <th>Emergency Surcharge</th>
+                    <th>Total Payout (₹)</th>
+                    <th>Requested Date</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="paymentsBody"></tbody>
+        </table>
+    </div>
+    <div style="margin-top: 20px; font-size: 0.8rem; color: #ffb3b3; text-align: center; background: rgba(0,0,0,0.3); border-radius: 40px; padding: 8px;">
+        ⚡ <strong>Payout structure:</strong> Normal = ₹200 total | Emergency = ₹600 total
+    </div>
+</div>
+
+<div class="footer-note">
+    <span id="timestamp"></span> · manual approval only · all transactions logged with date
+</div>
+
+<script>
+    (function() {
+        // Authentication
+        if (!localStorage.getItem('currentSpecialAdmin')) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const specialAdminToken = localStorage.getItem('specialAdminToken');
+        if (!specialAdminToken) {
+            window.location.href = 'login.html';
+            return;
+        }
+
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api`;
+        })();
+        const authHeaders = () => ({ 'Authorization': `Bearer ${specialAdminToken}`, 'Content-Type': 'application/json' });
+
+        const workerNameCache = {};
+        async function getWorkerName(workerId) {
+            if (workerNameCache[workerId] !== undefined) return workerNameCache[workerId];
+            try {
+                const res = await fetch(`${API_BASE}/workers/${workerId}`, { headers: authHeaders() });
+                if (res.ok) {
+                    const w = await res.json();
+                    workerNameCache[workerId] = w.name || w.email;
+                } else {
+                    workerNameCache[workerId] = 'Unknown';
+                }
+            } catch (e) {
+                workerNameCache[workerId] = 'Unknown';
+            }
+            return workerNameCache[workerId];
+        }
+
+        function getUserEmail(userId) {
+            // booking.userId / payment.userId is always the user's email already
+            return userId || '—';
+        }
+
+        const bookingCache = {};
+        async function getBooking(bookingId) {
+            if (bookingCache[bookingId] !== undefined) return bookingCache[bookingId];
+            try {
+                const res = await fetch(`${API_BASE}/bookings/${bookingId}`, { headers: authHeaders() });
+                bookingCache[bookingId] = res.ok ? await res.json() : null;
+            } catch (e) {
+                bookingCache[bookingId] = null;
+            }
+            return bookingCache[bookingId];
+        }
+
+        async function isEmergencyBooking(bookingId) {
+            const b = await getBooking(bookingId);
+            return b ? b.emergency === true : false;
+        }
+
+        function getPayoutBreakdown(emergency) {
+            return emergency ? { base: 200, surcharge: 400, total: 600 } : { base: 200, surcharge: 0, total: 200 };
+        }
+
+        // Format date nicely
+        function formatDate(isoString) {
+            if (!isoString) return '—';
+            try {
+                const date = new Date(isoString);
+                return date.toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+            } catch(e) {
+                return isoString.slice(0, 16);
+            }
+        }
+
+        // Refresh dashboard data and table
+        async function refreshAdminPanel() {
+            let payments = [];
+            try {
+                const res = await fetch(`${API_BASE}/payments-data?limit=500`, { headers: authHeaders() });
+                if (res.ok) payments = (await res.json()).data || [];
+            } catch (e) { /* fall through to empty state below */ }
+
+            // Metrics using effective totals (based on emergency rule)
+            let pendingReleaseCount = 0;
+            let totalApprovedCount = 0;
+            let totalRevenue = 0;
+
+            for (const p of payments) {
+                const emergency = await isEmergencyBooking(p.bookingId);
+                const total = getPayoutBreakdown(emergency).total;
+                totalRevenue += total;
+                if (p.status === 'paid_by_user') pendingReleaseCount++;
+                if (p.status === 'approved') totalApprovedCount++;
+            }
+
+            document.getElementById('pendingReleaseCount').innerText = pendingReleaseCount;
+            document.getElementById('totalApprovedCount').innerText = totalApprovedCount;
+            document.getElementById('totalRevenue').innerHTML = `₹${totalRevenue}`;
+
+            // Table rows for payments that are 'paid_by_user' (awaiting admin release)
+            const tbody = document.getElementById('paymentsBody');
+            const pendingPayments = payments.filter(p => p.status === 'paid_by_user');
+
+            if (pendingPayments.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="11" class="empty-msg">✨ No payments waiting for release — all clear</td></tr>';
+                return;
+            }
+
+            // Sort by creation date, newest first
+            pendingPayments.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            const rows = await Promise.all(pendingPayments.map(async (payment) => {
+                const emergency = await isEmergencyBooking(payment.bookingId);
+                const { base, surcharge, total } = getPayoutBreakdown(emergency);
+
+                const modeText = emergency ? '🚨 EMERGENCY' : '⚡ NORMAL';
+                const modeBadgeClass = emergency ? 'badge-emergency' : '';
+                const surchargeDisplay = surcharge > 0 ? `+₹${surcharge}` : '—';
+                const requestedDate = payment.createdAt ? formatDate(payment.createdAt) : '—';
+                const workerName = await getWorkerName(payment.workerId);
+                const userEmail = getUserEmail(payment.userId);
+
+                return `
+                    <tr>
+                        <td>${payment.id}</td>
+                        <td>${payment.bookingId} ${emergency ? '<span class="badge badge-emergency">🔥 EMERGENCY</span>' : ''}</td>
+                        <td>${escapeHtml(workerName)}</td>
+                        <td>${escapeHtml(userEmail)}</td>
+                        <td><span class="badge ${modeBadgeClass}">${modeText}</span></td>
+                        <td>₹${base}</td>
+                        <td>${surchargeDisplay}</td>
+                        <td><strong style="color:#ffcf9f;">₹${total}</strong></td>
+                        <td>${requestedDate}</td>
+                        <td><span class="badge badge-paid_by_user">paid_by_user</span></td>
+                        <td><button class="approve-btn" data-payment-id="${payment.id}">✓ APPROVE & RELEASE</button></td>
+                    </tr>
+                `;
+            }));
+            tbody.innerHTML = rows.join('');
+
+            // Attach event listeners to approve buttons
+            document.querySelectorAll('.approve-btn').forEach(btn => {
+                btn.removeEventListener('click', approvalHandler);
+                btn.addEventListener('click', approvalHandler);
+            });
+        }
+
+        // Escape helper
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str).replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        // Approval handler (manual, no automation)
+        async function approvalHandler(e) {
+            const btn = e.currentTarget;
+            const paymentId = btn.dataset.paymentId;
+            if (!paymentId) return;
+
+            try {
+                const res = await fetch(`${API_BASE}/payments-data/${paymentId}/status`, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ status: 'approved' })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                    alert(data.message || 'This payment has already been processed or is not pending.');
+                    return;
+                }
+                alert(`✅ Payment #${paymentId} approved and released to worker. (Amount reflects emergency surcharge if applicable)`);
+                refreshAdminPanel();
+            } catch (err) {
+                alert('Could not reach the server. Please try again.');
+            }
+        }
+
+        // update timestamp footer
+        function updateTimestamp() {
+            const now = new Date();
+            document.getElementById('timestamp').innerHTML = `⏱️ last sync: ${now.toLocaleString()} · manual approval only`;
+        }
+
+        // Initial load and auto-refresh every 8 seconds (sync data)
+        refreshAdminPanel();
+        updateTimestamp();
+        setInterval(() => {
+            refreshAdminPanel();
+            updateTimestamp();
+        }, 8000);
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('currentSpecialAdmin');
+            localStorage.removeItem('specialAdminToken');
+            localStorage.removeItem('specialAdminRefreshToken');
+            window.location.href = '../index.html';
+        });
+    })();
+</script>
+</body>
+</html>

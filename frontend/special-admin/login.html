@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Special Admin Login | Servisphere</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #141e30, #243b55);
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 360px;
+            padding: 35px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 40px rgba(0, 123, 255, 0.35);
+            color: white;
+            animation: fadeIn 0.8s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 10px rgba(0, 191, 255, 0.8);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            box-shadow: 0 0 10px #00bfff;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, #00bfff, #007bff);
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0 25px rgba(0, 191, 255, 1);
+        }
+
+        button:active {
+            transform: scale(0.97);
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            color: #aadfff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-card">
+        <h2>Special Admin Login</h2>
+
+        <form id="loginForm">
+            <input type="email" id="email" placeholder="Email address" required>
+            <input type="password" id="password" placeholder="Password" required>
+
+            <button type="submit">Secure Login</button>
+        </form>
+
+        <div class="back-link">
+            <a href="../index.html">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api/auth`;
+        })();
+
+        document.getElementById('loginForm').onsubmit = async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            try {
+                const res = await fetch(`${API_BASE}/login/admin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    alert(data.message || 'Invalid special admin credentials');
+                    return;
+                }
+                if (data.role !== 'special_admin') {
+                    alert('This account does not have special admin access.');
+                    return;
+                }
+
+                localStorage.setItem('specialAdminToken', data.token);
+                localStorage.setItem('specialAdminRefreshToken', data.refreshToken);
+                localStorage.setItem(
+                    'currentSpecialAdmin',
+                    JSON.stringify({ email: data.admin.email, role: 'special' })
+                );
+                window.location.href = 'dashboard.html';
+            } catch (err) {
+                alert('Could not reach the server. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

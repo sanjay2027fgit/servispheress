@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Worker Signup | Servisphere — Join the Elite Force</title>
+
+    <!-- Google Font & Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at 10% 30%, #0a0f1e, #03060c);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ---------- Enhanced Animated Background with Multi-Colored Icons & Particles ---------- */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .worker-icon {
+            position: absolute;
+            font-size: 2.2rem;
+            opacity: 0.2;
+            animation: floatWorker linear infinite;
+            filter: drop-shadow(0 0 6px currentColor);
+            z-index: 0;
+        }
+
+        /* different colors for icons */
+        .worker-icon:nth-child(odd) { color: #fbbf24; text-shadow: 0 0 8px #fbbf24; }
+        .worker-icon:nth-child(even) { color: #3b82f6; text-shadow: 0 0 8px #3b82f6; }
+        .worker-icon:nth-child(3n) { color: #ec489a; text-shadow: 0 0 8px #ec489a; }
+        .worker-icon:nth-child(5n) { color: #10b981; text-shadow: 0 0 6px #10b981; }
+
+        @keyframes floatWorker {
+            0% {
+                transform: translateX(-10%) translateY(110vh) rotate(0deg);
+            }
+            100% {
+                transform: translateX(10%) translateY(-10vh) rotate(15deg);
+            }
+        }
+
+        /* varied positions, sizes, speeds */
+        .worker-icon:nth-child(1) { left: 5%; animation-duration: 18s; animation-delay: 0s; font-size: 2rem; }
+        .worker-icon:nth-child(2) { left: 20%; animation-duration: 22s; animation-delay: 2s; font-size: 2.5rem; opacity: 0.25; }
+        .worker-icon:nth-child(3) { left: 40%; animation-duration: 15s; animation-delay: 1s; font-size: 1.8rem; opacity: 0.2; }
+        .worker-icon:nth-child(4) { left: 65%; animation-duration: 25s; animation-delay: 0.5s; font-size: 2.2rem; opacity: 0.2; }
+        .worker-icon:nth-child(5) { left: 85%; animation-duration: 20s; animation-delay: 3s; font-size: 2.8rem; opacity: 0.15; }
+        .worker-icon:nth-child(6) { left: 50%; animation-duration: 30s; animation-delay: 4s; font-size: 2rem; opacity: 0.2; }
+        .worker-icon:nth-child(7) { left: 75%; animation-duration: 17s; animation-delay: 6s; font-size: 1.8rem; }
+        .worker-icon:nth-child(8) { left: 12%; animation-duration: 28s; animation-delay: 1.8s; font-size: 2.4rem; }
+        .worker-icon:nth-child(9) { left: 92%; animation-duration: 24s; animation-delay: 0.3s; font-size: 2.1rem; }
+        .worker-icon:nth-child(10) { left: 34%; animation-duration: 19s; animation-delay: 5s; font-size: 2rem; }
+        .worker-icon:nth-child(11) { left: 55%; animation-duration: 27s; animation-delay: 7s; font-size: 2.6rem; opacity: 0.18; color: #a855f7; }
+        .worker-icon:nth-child(12) { left: 8%; animation-duration: 21s; animation-delay: 2.5s; font-size: 1.9rem; color: #f97316; }
+
+        /* floating glowing orbs with multiple colors */
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            width: 280px;
+            height: 280px;
+            background: radial-gradient(circle, #fbbf2450, transparent 70%);
+            top: -100px;
+            left: -100px;
+            border-radius: 50%;
+            animation: glowShift 20s infinite alternate;
+        }
+        .animated-bg::after {
+            content: '';
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            background: radial-gradient(circle, #3b82f640, transparent 70%);
+            bottom: -120px;
+            right: -80px;
+            border-radius: 50%;
+            animation: glowShift2 24s infinite alternate;
+        }
+        .extra-glow {
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, #ec489a30, transparent 70%);
+            top: 40%;
+            left: 20%;
+            border-radius: 50%;
+            animation: glowShift3 18s infinite alternate;
+        }
+        .extra-glow2 {
+            position: absolute;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, #10b98140, transparent 70%);
+            bottom: 30%;
+            right: 15%;
+            border-radius: 50%;
+            animation: glowShift4 22s infinite alternate;
+        }
+        @keyframes glowShift {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.4; }
+            100% { transform: translate(80px, 60px) scale(1.3); opacity: 0.7; }
+        }
+        @keyframes glowShift2 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.3; }
+            100% { transform: translate(-70px, -80px) scale(1.4); opacity: 0.6; }
+        }
+        @keyframes glowShift3 {
+            0% { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 0.2; }
+            100% { transform: translate(40px, -30px) rotate(20deg) scale(1.2); opacity: 0.5; }
+        }
+        @keyframes glowShift4 {
+            0% { transform: translate(0, 0) scale(1); opacity: 0.25; }
+            100% { transform: translate(-50px, 40px) scale(1.3); opacity: 0.55; }
+        }
+
+        /* ---------- Signup Card (Glassmorphism enhanced) ---------- */
+        .signup-card {
+            width: 100%;
+            max-width: 520px;
+            background: rgba(18, 22, 35, 0.88);
+            backdrop-filter: blur(18px);
+            border-radius: 52px;
+            padding: 38px 34px;
+            border: 1px solid rgba(251, 191, 36, 0.5);
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(251, 191, 36, 0.2) inset;
+            transition: transform 0.35s ease, box-shadow 0.3s;
+            z-index: 2;
+            animation: cardGlow 4s infinite alternate;
+        }
+
+        .signup-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 40px 60px rgba(0, 0, 0, 0.6), 0 0 0 2px rgba(251, 191, 36, 0.5) inset;
+        }
+
+        @keyframes cardGlow {
+            0% { border-color: rgba(251, 191, 36, 0.3); box-shadow: 0 30px 50px rgba(0, 0, 0, 0.4); }
+            100% { border-color: rgba(251, 191, 36, 0.9); box-shadow: 0 30px 55px rgba(251, 191, 36, 0.2); }
+        }
+
+        h2 {
+            text-align: center;
+            font-weight: 800;
+            font-size: 2.2rem;
+            background: linear-gradient(145deg, #FFE6B0, #FBBF24, #F59E0B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .subhead {
+            text-align: center;
+            color: #cbd5e6;
+            font-size: 0.85rem;
+            margin-bottom: 28px;
+            border-bottom: 1px dashed #fbbf2440;
+            display: inline-block;
+            width: auto;
+            padding-bottom: 6px;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #fbbf24;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: 0.2s;
+            z-index: 1;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 14px 16px 14px 46px;
+            font-size: 0.95rem;
+            background: #0f111acf;
+            border: 1.5px solid #2a2f3f;
+            border-radius: 32px;
+            color: #f0eef7;
+            font-weight: 500;
+            transition: all 0.25s;
+            outline: none;
+            font-family: 'Inter', sans-serif;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+            background-repeat: no-repeat;
+            background-position: right 20px center;
+            cursor: pointer;
+        }
+
+        input:focus, select:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 14px rgba(251, 191, 36, 0.5);
+            background: #171c2a;
+        }
+
+        input::placeholder, select:invalid {
+            color: #8b93a7;
+        }
+
+        /* two-column for state-city */
+        .row-duo {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .row-duo .input-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .otp-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #1f2937, #111827);
+            border: 1px solid #fbbf24;
+            color: #fcd34d;
+            padding: 12px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            margin-bottom: 14px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .otp-btn i {
+            font-size: 1rem;
+            color: #fbbf24;
+        }
+
+        .otp-btn:hover:not(:disabled) {
+            background: #fbbf24;
+            color: #0a0804;
+            box-shadow: 0 6px 20px #fbbf24;
+            transform: translateY(-2px);
+        }
+        .otp-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            background: linear-gradient(95deg, #fbbf24, #f59e0b);
+            border: none;
+            padding: 14px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1rem;
+            color: #0f0c06;
+            letter-spacing: 1.2px;
+            cursor: pointer;
+            transition: all 0.25s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 12px;
+            box-shadow: 0 10px 22px #fbbf2440;
+        }
+
+        button[type="submit"]:hover {
+            transform: scale(1.02) translateY(-3px);
+            box-shadow: 0 18px 32px #fbbf24b3;
+            background: linear-gradient(95deg, #fcd34d, #fbbf24);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: #a5b4d0;
+        }
+
+        .login-link a {
+            color: #fbbf24;
+            text-decoration: none;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .login-link a:hover {
+            text-shadow: 0 0 8px #fbbf24;
+            text-decoration: underline;
+        }
+
+        /* Toast notification */
+        .toast-notify {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1e293bdd;
+            backdrop-filter: blur(20px);
+            border-left: 6px solid #fbbf24;
+            padding: 14px 28px;
+            border-radius: 60px;
+            color: #fde68a;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 999;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 1px solid #fbbf2460;
+        }
+
+        .toast-notify.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: none;
+        }
+
+        .toast-notify i {
+            font-size: 1.4rem;
+        }
+
+        @media (max-width: 560px) {
+            .signup-card { padding: 28px 20px; }
+            .row-duo { flex-direction: column; gap: 12px; }
+            .row-duo .input-group { margin-bottom: 12px; }
+            h2 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Animated background: multi-color worker icons + glowing orbs -->
+    <div class="animated-bg">
+        <div class="worker-icon"><i class="fas fa-tools"></i></div>
+        <div class="worker-icon"><i class="fas fa-hard-hat"></i></div>
+        <div class="worker-icon"><i class="fas fa-wrench"></i></div>
+        <div class="worker-icon"><i class="fas fa-brush"></i></div>
+        <div class="worker-icon"><i class="fas fa-plug"></i></div>
+        <div class="worker-icon"><i class="fas fa-bolt"></i></div>
+        <div class="worker-icon"><i class="fas fa-screwdriver"></i></div>
+        <div class="worker-icon"><i class="fas fa-hammer"></i></div>
+        <div class="worker-icon"><i class="fas fa-ladder"></i></div>
+        <div class="worker-icon"><i class="fas fa-paint-roller"></i></div>
+        <div class="worker-icon"><i class="fas fa-cogs"></i></div>
+        <div class="worker-icon"><i class="fas fa-fan"></i></div>
+        <div class="extra-glow"></div>
+        <div class="extra-glow2"></div>
+    </div>
+
+    <div class="signup-card">
+        <h2>⚡ GOLDEN ELITE</h2>
+        <div style="text-align: center;"><span class="subhead">Join the workforce · Hardworker's Guild</span></div>
+
+        <form id="signupForm">
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" id="name" placeholder="Full Name" required autocomplete="off">
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Email address" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-id-card"></i>
+                <input type="text" id="aadhar" placeholder="Aadhar Number" required>
+            </div>
+
+            <!-- Job Role dropdown -->
+            <div class="input-group">
+                <i class="fas fa-briefcase"></i>
+                <select id="role" required>
+                    <option value="" disabled selected>-- Select a job role --</option>
+                    <option value="Plumber">🔧 Plumber</option>
+                    <option value="Electrician">⚡ Electrician</option>
+                    <option value="AC Mechanic">❄️ AC Mechanic</option>
+                    <option value="Bike Mechanic">🏍️ Bike Mechanic</option>
+                    <option value="Carpenter">🔨 Carpenter</option>
+                    <option value="House Cleaning">🧹 House Cleaning</option>
+                    <option value="Painter">🎨 Painter</option>
+                    <option value="Refrigerator Repair">🌡️ Refrigerator Repair</option>
+                    <option value="Washing Machine Repair">🧼 Washing Machine Repair</option>
+                    <option value="RO Water Purifier Service">💧 RO Water Purifier</option>
+                    <option value="Tutor">📚 Tutor</option>
+                    <option value="Chef">🍳 Chef</option>
+                    <option value="Gardener">🌿 Gardener</option>
+                    <option value="Acting Driver">🚗 Acting Driver</option>
+                    <option value="Masseur">💆 Masseur</option>
+                    <option value="Beautician">💄 Beautician</option>
+                    <option value="Delivery Partner">📦 Delivery Partner</option>
+                    <option value="Load Man">📦 Load Man</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <i class="fas fa-chart-line"></i>
+                <input type="number" id="experience" placeholder="Experience (years)" required min="0" step="0.5">
+            </div>
+
+            <!-- Dynamic State & City dropdowns (replaces old single city field) -->
+            <div class="row-duo">
+                <div class="input-group">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <select id="state" required>
+                        <option value="" disabled selected>-- Select State --</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <i class="fas fa-city"></i>
+                    <select id="city" required>
+                        <option value="" disabled selected>-- Select City --</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- OTP Button + Field -->
+            <button type="button" id="sendOtp" class="otp-btn"><i class="fas fa-paper-plane"></i> Send OTP</button>
+
+            <div class="input-group">
+                <i class="fas fa-key"></i>
+                <input type="text" id="otp" placeholder="Enter OTP" required>
+            </div>
+
+            <button type="submit"><i class="fas fa-user-plus"></i> Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <div id="toastMsg" class="toast-notify">
+        <i class="fas fa-bell"></i>
+        <span id="toastText">Message</span>
+    </div>
+
+    <script>
+        // ======================== STATE & CITY DATA (frontend only) ========================
+        const indiaStatesCities = {
+            "Maharashtra": ["Mumbai", "Pune", "Nagpur", "Nashik", "Thane", "Aurangabad", "Solapur"],
+            "Delhi": ["New Delhi", "South Delhi", "North Delhi", "East Delhi", "Dwarka", "Rohini"],
+            "Karnataka": ["Bengaluru", "Mysore", "Hubli", "Mangalore", "Belgaum", "Gulbarga"],
+            "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Khammam", "Karimnagar"],
+            "Gujarat": ["Ahmedabad", "Surat", "Vadodara", "Rajkot", "Bhavnagar", "Jamnagar"],
+            "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem", "Erode"],
+            "West Bengal": ["Kolkata", "Howrah", "Durgapur", "Siliguri", "Asansol"],
+            "Rajasthan": ["Jaipur", "Jodhpur", "Udaipur", "Kota", "Ajmer", "Bikaner"],
+            "Uttar Pradesh": ["Lucknow", "Kanpur", "Agra", "Varanasi", "Prayagraj", "Noida", "Ghaziabad"],
+            "Punjab": ["Ludhiana", "Amritsar", "Jalandhar", "Patiala", "Chandigarh"],
+            "Haryana": ["Gurugram", "Faridabad", "Panipat", "Ambala", "Hisar"],
+            "Bihar": ["Patna", "Gaya", "Bhagalpur", "Muzaffarpur"],
+            "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur", "Ujjain"],
+            "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kollam"],
+            "Odisha": ["Bhubaneswar", "Cuttack", "Rourkela", "Puri"],
+            "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Tirupati"],
+            "Jharkhand": ["Ranchi", "Jamshedpur", "Dhanbad", "Bokaro"],
+            "Chhattisgarh": ["Raipur", "Bhilai", "Bilaspur", "Korba"]
+        };
+
+        // Populate state dropdown on page load
+        const stateSelect = document.getElementById('state');
+        const citySelect = document.getElementById('city');
+
+        function populateStates() {
+            for (let state in indiaStatesCities) {
+                const option = document.createElement('option');
+                option.value = state;
+                option.textContent = state;
+                stateSelect.appendChild(option);
+            }
+        }
+
+        function updateCities() {
+            const selectedState = stateSelect.value;
+            citySelect.innerHTML = '<option value="" disabled selected>-- Select City --</option>';
+            if (selectedState && indiaStatesCities[selectedState]) {
+                const cities = indiaStatesCities[selectedState];
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+                citySelect.disabled = false;
+            } else {
+                citySelect.disabled = true;
+            }
+        }
+
+        // Event listener: when state changes, update city dropdown
+        stateSelect.addEventListener('change', updateCities);
+
+        // Initialize states and set default disabled city
+        populateStates();
+        citySelect.disabled = true;
+
+        // ========== Toast & API logic (keep existing flow) ==========
+        function showToast(message, isError = false) {
+            const toastDiv = document.getElementById('toastMsg');
+            const toastSpan = document.getElementById('toastText');
+            if (!toastDiv) return;
+            const iconElem = toastDiv.querySelector('i');
+            if (isError) {
+                iconElem.className = 'fas fa-exclamation-triangle';
+                toastDiv.style.borderLeftColor = '#ff6b6b';
+                toastDiv.style.color = '#ffcccc';
+            } else {
+                iconElem.className = 'fas fa-check-circle';
+                toastDiv.style.borderLeftColor = '#fbbf24';
+                toastDiv.style.color = '#fde68a';
+            }
+            toastSpan.innerText = message;
+            toastDiv.classList.add('show');
+            setTimeout(() => {
+                toastDiv.classList.remove('show');
+                setTimeout(() => {
+                    iconElem.className = 'fas fa-bell';
+                    toastDiv.style.borderLeftColor = '#fbbf24';
+                    toastDiv.style.color = '#fde68a';
+                }, 300);
+            }, 3800);
+        }
+
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api/auth`;
+        })();
+        let cooldownTimer = null;
+
+        const postJson = async (url, payload) => {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
+            }
+            return data;
+        };
+
+        function startCooldown(seconds) {
+            let remaining = seconds;
+            const btn = document.getElementById('sendOtp');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-hourglass-half"></i> Resend OTP in ${remaining}s`;
+            clearInterval(cooldownTimer);
+            cooldownTimer = setInterval(() => {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(cooldownTimer);
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fas fa-paper-plane"></i> Send OTP`;
+                    return;
+                }
+                btn.innerHTML = `<i class="fas fa-hourglass-half"></i> Resend OTP in ${remaining}s`;
+            }, 1000);
+        }
+
+        const sendOtpBtn = document.getElementById('sendOtp');
+        sendOtpBtn.onclick = async function () {
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                showToast('📧 Please enter your email address first', true);
+                return;
+            }
+            const emailPattern = /^[^\s@]+@([^\s@]+\.)+[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                showToast('❌ Invalid email format', true);
+                return;
+            }
+            try {
+                sendOtpBtn.disabled = true;
+                sendOtpBtn.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Sending OTP...`;
+                await postJson(`${API_BASE}/send-otp`, { email, role: 'worker' });
+                showToast('✨ OTP sent successfully to your Gmail! (Valid for 5 min)', false);
+                startCooldown(60);
+            } catch (error) {
+                let errMsg = error.message;
+                const retryMatch = errMsg.match(/(\d+)/);
+                if (retryMatch && errMsg.includes('cooldown')) {
+                    startCooldown(Number(retryMatch[1]));
+                    showToast(`⏳ Please wait ${retryMatch[1]} seconds before resending OTP`, true);
+                } else {
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.innerHTML = `<i class="fas fa-paper-plane"></i> Send OTP`;
+                    showToast(`⚠️ OTP failed: ${errMsg}`, true);
+                }
+            }
+        };
+
+        const signupForm = document.getElementById('signupForm');
+        signupForm.onsubmit = async function (e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const aadhar = document.getElementById('aadhar').value.trim();
+            const role = document.getElementById('role').value;
+            const experience = document.getElementById('experience').value;
+            const otp = document.getElementById('otp').value.trim();
+            const state = document.getElementById('state').value;
+            const city = document.getElementById('city').value;
+            
+            if (!name || !email || !password || !aadhar || !role || !experience || !otp || !state || !city) {
+                showToast('⚠️ Please fill all fields including State & City', true);
+                return;
+            }
+            if (password.length < 6) {
+                showToast('🔒 Password must be at least 6 characters', true);
+                return;
+            }
+            if (aadhar.length < 8) {
+                showToast('🆔 Enter valid Aadhar number', true);
+                return;
+            }
+
+            try {
+                const payload = {
+                    name,
+                    email,
+                    password,
+                    aadhar,
+                    role,
+                    experience: parseFloat(experience),
+                    otp,
+                    city: city,       // backend expects 'city' field (city name)
+                    state: state      // optional but we include for completeness
+                };
+                await postJson(`${API_BASE}/signup/worker`, payload);
+                
+                // localStorage fallback for existing dashboard
+                let workers = JSON.parse(localStorage.getItem('workers') || '[]');
+                if (!workers.find(w => w.email === email)) {
+                    workers.push({
+                        id: Date.now(),
+                        name,
+                        email,
+                        password,
+                        aadhar,
+                        role,
+                        experience: parseFloat(experience),
+                        city: city,
+                        state: state,
+                        availability: true,
+                        rate: 200
+                    });
+                    localStorage.setItem('workers', JSON.stringify(workers));
+                } else {
+                    const idx = workers.findIndex(w => w.email === email);
+                    if (idx !== -1) {
+                        workers[idx].city = city;
+                        workers[idx].state = state;
+                    }
+                    localStorage.setItem('workers', JSON.stringify(workers));
+                }
+
+                showToast('🎉 Account created successfully! Welcome to Golden Elite. Redirecting...', false);
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 2000);
+            } catch (error) {
+                let failMsg = error.message || 'Signup failed. Check OTP or server.';
+                if (failMsg.includes('OTP')) {
+                    showToast(`❌ Invalid OTP or expired. Please request again.`, true);
+                } else {
+                    showToast(`⚠️ ${failMsg}`, true);
+                }
+            }
+        };
+
+        // Interactive effect for inputs
+        const allInputs = document.querySelectorAll('input, select');
+        allInputs.forEach(inp => {
+            inp.addEventListener('focus', () => {
+                inp.parentElement.style.transform = 'scale(1.01)';
+                inp.parentElement.style.transition = '0.2s';
+            });
+            inp.addEventListener('blur', () => {
+                inp.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        // subtle parallax for background
+        window.addEventListener('mousemove', (e) => {
+            const moveX = (e.clientX - window.innerWidth/2) * 0.008;
+            const moveY = (e.clientY - window.innerHeight/2) * 0.008;
+            const bg = document.querySelector('.animated-bg');
+            if (bg) {
+                bg.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            }
+        });
+    </script>
+</body>
+</html>

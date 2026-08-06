@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>User Signup | Servisphere</title>
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at top, #0f2027, #000000);
+            overflow: hidden;
+        }
+
+        /* Neon glow background */
+        body::before {
+            content: "";
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #00bfff, transparent 60%);
+            top: -120px;
+            left: -120px;
+            filter: blur(80px);
+            opacity: 0.7;
+            animation: float 6s ease-in-out infinite alternate;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            width: 450px;
+            height: 450px;
+            background: radial-gradient(circle, #ff3cac, transparent 60%);
+            bottom: -120px;
+            right: -120px;
+            filter: blur(90px);
+            opacity: 0.6;
+            animation: float 7s ease-in-out infinite alternate-reverse;
+        }
+
+        @keyframes float {
+            from { transform: translateY(0); }
+            to { transform: translateY(30px); }
+        }
+
+        .signup-card {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            padding: 35px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(14px);
+            box-shadow:
+                0 0 20px rgba(0, 191, 255, 0.6),
+                0 0 50px rgba(255, 60, 172, 0.25);
+            color: white;
+            z-index: 1;
+            animation: fadeIn 0.8s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #00bfff, #ff3cac);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 15px rgba(0, 191, 255, 0.7);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 14px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            box-shadow: 0 0 12px rgba(0, 191, 255, 0.9);
+        }
+
+        .otp-btn {
+            width: 100%;
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 12px;
+            background: transparent;
+            color: #00bfff;
+            border: 2px solid #00bfff;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 191, 255, 0.8);
+            transition: 0.3s;
+        }
+
+        .otp-btn:hover {
+            background: #00bfff;
+            color: #000;
+            box-shadow: 0 0 25px rgba(0, 191, 255, 1);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #000;
+            background: linear-gradient(135deg, #00bfff, #ff3cac);
+            box-shadow:
+                0 0 20px rgba(0, 191, 255, 0.8),
+                0 0 30px rgba(255, 60, 172, 0.6);
+            transition: 0.3s;
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 0 30px rgba(0, 191, 255, 1),
+                0 0 40px rgba(255, 60, 172, 0.9);
+        }
+
+        .login-link {
+            text-align: center;
+            margin-top: 18px;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            color: #00bfff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(25px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="signup-card">
+        <h2>User Signup</h2>
+
+        <form id="signupForm">
+            <input type="email" id="email" placeholder="Email address" required>
+            <input type="password" id="password" placeholder="Password" required>
+
+            <button type="button" id="sendOtp" class="otp-btn">Send OTP</button>
+
+            <input type="text" id="otp" placeholder="Enter OTP" required>
+
+            <button type="submit">Create Account</button>
+        </form>
+
+        <div class="login-link">
+            Already have an account?
+            <a href="login.html">Login</a>
+        </div>
+    </div>
+
+    <script>
+        const sendOtpBtn = document.getElementById('sendOtp');
+        const signupForm = document.getElementById('signupForm');
+        const API_BASE = (() => {
+            const isLocalFile = window.location.protocol === 'file:';
+            const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const backendOrigin = (function() {
+                const host = window.location.hostname;
+                if (host === 'servispheress.netlify.app') return 'https://servispheress.onrender.com';
+                return isLocalFile || isLocalHost ? 'http://localhost:5000' : window.location.origin;
+            })();
+            return `${backendOrigin}/api/auth`;
+        })();
+        let cooldownTimer = null;
+
+        const postJson = async (url, payload) => {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) {
+                throw new Error(data.message || 'Request failed');
+            }
+            return data;
+        };
+
+        // Keeps resend requests rate-limited in UI to match backend cooldown.
+        const startCooldown = (seconds) => {
+            let remaining = seconds;
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.textContent = `Resend OTP in ${remaining}s`;
+
+            clearInterval(cooldownTimer);
+            cooldownTimer = setInterval(() => {
+                remaining -= 1;
+                if (remaining <= 0) {
+                    clearInterval(cooldownTimer);
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Send OTP';
+                    return;
+                }
+                sendOtpBtn.textContent = `Resend OTP in ${remaining}s`;
+            }, 1000);
+        };
+
+        sendOtpBtn.onclick = async function () {
+            const email = document.getElementById('email').value.trim();
+            if (!email) {
+                alert('Please enter email first');
+                return;
+            }
+
+            try {
+                sendOtpBtn.disabled = true;
+                sendOtpBtn.textContent = 'Sending OTP...';
+                await postJson(`${API_BASE}/send-otp`, { email, role: 'user' });
+                alert('OTP sent to your Gmail successfully.');
+                startCooldown(60);
+            } catch (error) {
+                const retryMatch = error.message.match(/(\d+)/);
+                if (retryMatch) {
+                    startCooldown(Number(retryMatch[1]));
+                } else {
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Send OTP';
+                }
+                alert(error.message);
+            }
+        };
+
+        signupForm.onsubmit = async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const otp = document.getElementById('otp').value.trim();
+
+            try {
+                await postJson(`${API_BASE}/signup/user`, { email, password, otp });
+
+                // Backward compatibility for existing localStorage based login screens.
+                const users = JSON.parse(localStorage.getItem('users') || '[]');
+                if (!users.find(u => u.email === email)) {
+                    users.push({ email, password, role: 'user' });
+                    localStorage.setItem('users', JSON.stringify(users));
+                }
+
+                alert('Account created successfully! Please login.');
+                window.location.href = 'login.html';
+            } catch (error) {
+                alert(error.message);
+            }
+        };
+    </script>
+</body>
+</html>
