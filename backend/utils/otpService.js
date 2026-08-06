@@ -7,7 +7,8 @@ const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
 // Resend Configuration
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@servisphere.app';
+const DEFAULT_RESEND_FROM = 'onboarding@resend.dev';
+const EMAIL_FROM = process.env.EMAIL_FROM || process.env.RESEND_FROM || DEFAULT_RESEND_FROM;
 
 // Initialize Resend client
 let resendClient = null;
@@ -29,6 +30,45 @@ if (process.env.NODE_ENV === 'production') {
 
 const normalizeEmail = (email = '') => email.trim().toLowerCase();
 
+const getSenderCandidates = () => {
+  const configured = String(process.env.EMAIL_FROM || process.env.RESEND_FROM || '').trim().toLowerCase();
+  return [...new Set([configured, DEFAULT_RESEND_FROM].filter(Boolean))];
+};
+
+const sendViaResend = async ({ to, subject, html, text }) => {
+  const resend = getResendClient();
+  const senderCandidates = getSenderCandidates();
+  let lastError = null;
+
+  for (const from of senderCandidates) {
+    try {
+      const response = await resend.emails.send({
+        from,
+        to,
+        subject,
+        html,
+        text
+      });
+
+      if (response?.error) {
+        lastError = new Error(response.error.message || 'Resend returned an error');
+        continue;
+      }
+
+      return { response, from };
+    } catch (error) {
+      lastError = error;
+      const message = error?.message || '';
+      const shouldRetry = message.includes('domain is not verified') || message.includes('validation_error') || error?.statusCode === 403;
+      if (!shouldRetry) {
+        throw error;
+      }
+    }
+  }
+
+  throw lastError || new Error('Failed to send email via Resend');
+};
+
 // Uses crypto for predictable-length, secure numeric OTP generation.
 const generateSecureOtp = () => crypto.randomInt(100000, 1000000).toString();
 
@@ -40,10 +80,7 @@ const sendOtpEmail = async (email, otp) => {
   }
 
   try {
-    const resend = getResendClient();
-    
-    const response = await resend.emails.send({
-      from: EMAIL_FROM,
+    const { response, from } = await sendViaResend({
       to: email,
       subject: 'Verify Your Email – OTP',
       html: `
@@ -55,15 +92,11 @@ const sendOtpEmail = async (email, otp) => {
           </div>
           <p style="text-align: center; color: #999; font-size: 14px;">This OTP expires in 5 minutes. Please do not share it.</p>
         </div>
-      `
+      `,
+      text: `Your Servisphere verification OTP is ${otp}. It expires in 5 minutes. Do not share it with anyone.`
     });
 
-    if (response.error) {
-      console.error('❌ Resend error:', response.error.message);
-      throw new Error(response.error.message);
-    }
-
-    console.log('✅ OTP Email sent successfully via Resend. ID:', response.data?.id);
+    console.log('✅ OTP Email sent successfully via Resend. ID:', response.data?.id, 'From:', from);
     return response;
     
   } catch (error) {
@@ -79,10 +112,7 @@ const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
   }
 
   try {
-    const resend = getResendClient();
-    
-    const response = await resend.emails.send({
-      from: EMAIL_FROM,
+    const { response, from } = await sendViaResend({
       to: email,
       subject: `Servisphere Arrival Verification OTP - Booking #${bookingId}`,
       html: `
@@ -97,14 +127,11 @@ const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
           </div>
           <p style="font-size: 14px; color: #999;">This OTP is valid for 5 minutes and can be used only once.</p>
         </div>
-      `
+      `,
+      text: `Your service worker has arrived. OTP: ${otp}. Booking ID: ${bookingId}. Service: ${serviceName || 'General Service'}. This OTP expires in 5 minutes.`
     });
 
-    if (response.error) {
-      throw new Error(response.error.message);
-    }
-
-    console.log('✅ Arrival OTP Email sent successfully via Resend. ID:', response.data?.id);
+    console.log('✅ Arrival OTP Email sent successfully via Resend. ID:', response.data?.id, 'From:', from);
     return response;
     
   } catch (error) {

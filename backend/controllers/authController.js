@@ -57,7 +57,7 @@ const sendOtp = async (req, res) => {
     } catch (emailError) {
       console.error('OTP email delivery failed:', emailError.message);
       return res.status(502).json({
-        message: 'Unable to send OTP email right now. Please verify the SMTP configuration or try again later.'
+        message: 'Unable to send OTP email right now. Please try again later or contact support if the problem persists.'
       });
     }
   } catch (error) {
