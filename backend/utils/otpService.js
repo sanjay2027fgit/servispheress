@@ -1,91 +1,31 @@
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 const OTP = require('../models/OTP');
 
 const OTP_EXPIRY_MS = 5 * 60 * 1000;
 const OTP_RESEND_COOLDOWN_MS = 60 * 1000;
 
-// Remove all spaces for email addresses (no internal spaces in emails)
-const sanitizeEmail = (value) => String(value || '').replace(/\s/g, '').toLowerCase().trim();
+// Get Resend API key
+const RESEND_API_KEY = process.env.RESEND_API_KEY;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'noreply@servisphere.app';
 
-// Get password - preserve spaces but also remove them if the env var came with spaces trimmed
-const getRawPassword = () => {
-  const raw = process.env.EMAIL_PASS || process.env.EMAIL_PASSWORD || process.env.SMTP_PASS || process.env.SMTP_PASSWORD || '';
-  return String(raw).trim();
-};
-
-const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
-const EMAIL_PORT = Number(process.env.EMAIL_PORT || 587);
-const EMAIL_SECURE = process.env.EMAIL_SECURE === 'true' || EMAIL_PORT === 465;
-const EMAIL_USER = sanitizeEmail(process.env.EMAIL_USER || process.env.EMAIL_USERNAME);
-const EMAIL_PASS = getRawPassword();
-const EMAIL_FROM = sanitizeEmail(process.env.EMAIL_FROM || EMAIL_USER);
-// Force IPv4 by default (Render & many hosts have IPv6 connectivity issues with Gmail SMTP)
-// Override with EMAIL_IPV6=true if needed for your deployment
-const USE_IPV4_ONLY = process.env.EMAIL_IPV6 !== 'true';
-
-// Debug: Log env var status on startup
-if (process.env.NODE_ENV === 'production') {
-  console.log('📧 SMTP Config Check:', {
-    hasEmailUser: !!EMAIL_USER,
-    emailUser: EMAIL_USER ? EMAIL_USER.substring(0, 10) + '...' : 'MISSING',
-    hasEmailPass: !!EMAIL_PASS,
-    passLength: EMAIL_PASS ? EMAIL_PASS.length : 0,
-    passHasSpaces: EMAIL_PASS ? EMAIL_PASS.includes(' ') : false,
-    hasEmailFrom: !!EMAIL_FROM,
-    emailFrom: EMAIL_FROM,
-    host: EMAIL_HOST,
-    port: EMAIL_PORT,
-    secure: EMAIL_SECURE,
-    useIPv4Only: USE_IPV4_ONLY
-  });
-}
-
-let transporter;
-
-const getTransporter = () => {
-  if (!transporter) {
-    if (!EMAIL_USER || !EMAIL_PASS) {
-      throw new Error('Email service is not configured: missing EMAIL_USER/EMAIL_PASSWORD or EMAIL_PASS');
-    }
-    if (!EMAIL_FROM) {
-      throw new Error('Email service is not configured: missing EMAIL_FROM or EMAIL_USER');
-    }
-
-    const transportConfig = {
-      host: EMAIL_HOST,
-      port: EMAIL_PORT,
-      secure: EMAIL_SECURE,
-      auth: {
-        user: EMAIL_USER,
-        pass: EMAIL_PASS,
-      },
-      connectionTimeout: 30000,
-      greetingTimeout: 30000,
-      socketTimeout: 30000,
-      tls: {
-        rejectUnauthorized: false,
-      },
-      family: USE_IPV4_ONLY ? 4 : 6
-    };
-
-    if (!EMAIL_SECURE) {
-      transportConfig.requireTLS = true;
-    }
-
-    transporter = nodemailer.createTransport(transportConfig);
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Nodemailer transport config:', {
-        host: transportConfig.host,
-        port: transportConfig.port,
-        secure: transportConfig.secure,
-        requireTLS: transportConfig.requireTLS,
-        family: transportConfig.family === 4 ? 'IPv4' : 'IPv6',
-      });
-    }
+// Initialize Resend
+let resendClient = null;
+const getResendClient = () => {
+  if (!RESEND_API_KEY) {
+    throw new Error('Resend API key not configured: set RESEND_API_KEY environment variable');
   }
-  return transporter;
+  if (!resendClient) {
+    resendClient = new Resend(RESEND_API_KEY);
+  }
+  return resendClient;
 };
+
+if (process.env.NODE_ENV === 'production') {
+  console.log('📧 Email Service: Resend');
+  console.log('📧 RESEND_API_KEY configured:', !!RESEND_API_KEY);
+  console.log('📧 EMAIL_FROM:', EMAIL_FROM);
+}
 
 const normalizeEmail = (email = '') => email.trim().toLowerCase();
 
@@ -93,94 +33,82 @@ const normalizeEmail = (email = '') => email.trim().toLowerCase();
 const generateSecureOtp = () => crypto.randomInt(100000, 1000000).toString();
 
 const sendOtpEmail = async (email, otp) => {
-  if (!EMAIL_USER || !EMAIL_PASS) {
-    const message = 'Email service is not configured: missing SMTP credentials';
-    console.error(`⚠️ ${message}`);
+  if (!RESEND_API_KEY) {
+    const message = 'Email service not configured: missing RESEND_API_KEY';
+    console.error(`❌ ${message}`);
     throw new Error(message);
   }
 
-  const mailOptions = {
-    from: EMAIL_FROM,
-    to: email,
-    subject: 'Verify Your Email – OTP',
-    text: `Your Servisphere verification OTP is ${otp}. It expires in 5 minutes. Do not share it with anyone.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #007bff;">Verify Your Email</h2>
-        <p>Your Servisphere verification OTP is:</p>
-        <h1 style="background: #f4f4f4; padding: 10px; border-radius: 5px; text-align: center; letter-spacing: 5px;">${otp}</h1>
-        <p>This OTP expires in 5 minutes. Please do not share it.</p>
-      </div>
-    `
-  };
-
   try {
-    const transporter = getTransporter();
+    const resend = getResendClient();
     
-    // Verify SMTP connection (optional - some hosts block this)
-    let verifyPassed = false;
-    try {
-      await transporter.verify();
-      console.log('✅ SMTP verification passed');
-      verifyPassed = true;
-    } catch (verifyError) {
-      console.warn('⚠️ SMTP verification failed (host may block verify):', verifyError.message);
-      console.warn('📧 Attempting to send anyway...');
+    const response = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: 'Verify Your Email – OTP',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #007bff; text-align: center;">Verify Your Email</h2>
+          <p style="text-align: center; color: #555;">Your Servisphere verification OTP is:</p>
+          <div style="background: #f4f4f4; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <h1 style="margin: 0; letter-spacing: 10px; font-size: 36px; color: #333;">${otp}</h1>
+          </div>
+          <p style="text-align: center; color: #999; font-size: 14px;">This OTP expires in 5 minutes. Please do not share it.</p>
+        </div>
+      `
+    });
+
+    if (response.error) {
+      console.error('❌ Resend error:', response.error.message);
+      throw new Error(response.error.message);
     }
-    
-    // Send email
-    const info = await transporter.sendMail(mailOptions);
-    console.log('✅ OTP Email sent successfully. Message ID:', info.messageId);
+
+    console.log('✅ OTP Email sent successfully via Resend. ID:', response.data?.id);
     
   } catch (error) {
-    const errorDetails = {
-      message: error?.message || 'Failed to send OTP email',
-      code: error?.code,
-      command: error?.command,
-      errno: error?.errno,
-      syscall: error?.syscall
-    };
-    
-    console.error('❌ Email send error:', JSON.stringify(errorDetails, null, 2));
-    
-    if (process.env.NODE_ENV === 'production') {
-      console.error('📧 SMTP Debug Info:', {
-        host: EMAIL_HOST,
-        port: EMAIL_PORT,
-        secure: EMAIL_SECURE,
-        userEmail: EMAIL_USER.substring(0, 10) + '...',
-        passLength: EMAIL_PASS.length,
-        passHasSpaces: EMAIL_PASS.includes(' '),
-        fromEmail: EMAIL_FROM,
-        recipientEmail: email
-      });
-    }
-    
-    throw new Error(errorDetails.message);
+    const errorMessage = error?.message || 'Failed to send OTP email';
+    console.error('❌ Email send error:', errorMessage);
+    throw new Error(errorMessage);
   }
 };
 
 const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
-  const mailOptions = {
-    from: EMAIL_FROM,
-    to: email,
-    subject: `Servisphere Arrival Verification OTP - Booking #${bookingId}`,
-    text: `Your service worker has arrived. OTP: ${otp}. Booking ID: ${bookingId}. Service: ${serviceName || 'General Service'}. This OTP expires in 5 minutes.`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2 style="color: #007bff;">Worker Arrival Verification</h2>
-        <p>Your service worker has arrived.</p>
-        <p><strong>Booking ID:</strong> ${bookingId}</p>
-        <p><strong>Service:</strong> ${serviceName || 'General Service'}</p>
-        <p>Please share this OTP with the worker to verify and start service safely:</p>
-        <h1 style="background: #f4f4f4; padding: 10px; border-radius: 5px; text-align: center; letter-spacing: 5px;">${otp}</h1>
-        <p>This OTP is valid for 5 minutes and can be used only once.</p>
-      </div>
-    `
-  };
+  if (!RESEND_API_KEY) {
+    throw new Error('Email service not configured: missing RESEND_API_KEY');
+  }
 
-  const transporter = getTransporter();
-  await transporter.sendMail(mailOptions);
+  try {
+    const resend = getResendClient();
+    
+    const response = await resend.emails.send({
+      from: EMAIL_FROM,
+      to: email,
+      subject: `Servisphere Arrival Verification OTP - Booking #${bookingId}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <h2 style="color: #007bff;">Worker Arrival Verification</h2>
+          <p>Your service worker has arrived.</p>
+          <p><strong>Booking ID:</strong> ${bookingId}</p>
+          <p><strong>Service:</strong> ${serviceName || 'General Service'}</p>
+          <p>Please share this OTP with the worker to verify and start service safely:</p>
+          <div style="background: #f4f4f4; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
+            <h1 style="margin: 0; letter-spacing: 10px; font-size: 36px; color: #333;">${otp}</h1>
+          </div>
+          <p style="font-size: 14px; color: #999;">This OTP is valid for 5 minutes and can be used only once.</p>
+        </div>
+      `
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message);
+    }
+
+    console.log('✅ Arrival OTP Email sent successfully via Resend. ID:', response.data?.id);
+    
+  } catch (error) {
+    console.error('❌ Arrival OTP Email send error:', error.message);
+    throw new Error(error.message);
+  }
 };
 
 const isOtpExpired = (otpDoc) => Date.now() - new Date(otpDoc.createdAt).getTime() > OTP_EXPIRY_MS;
