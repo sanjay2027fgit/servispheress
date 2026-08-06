@@ -30,9 +30,9 @@ const getTransporter = () => {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
       tls: {
         rejectUnauthorized: false,
       },
@@ -63,6 +63,12 @@ const normalizeEmail = (email = '') => email.trim().toLowerCase();
 const generateSecureOtp = () => crypto.randomInt(100000, 1000000).toString();
 
 const sendOtpEmail = async (email, otp) => {
+  // For development/testing: if email service is not configured, log OTP to console
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn(`⚠️ [DEV MODE] OTP for ${email}: ${otp}`);
+    return;
+  }
+
   const mailOptions = {
     from: EMAIL_FROM,
     to: email,
@@ -78,8 +84,18 @@ const sendOtpEmail = async (email, otp) => {
     `
   };
 
-  const transporter = getTransporter();
-  await transporter.sendMail(mailOptions);
+  try {
+    const transporter = getTransporter();
+    await transporter.sendMail(mailOptions);
+  } catch (error) {
+    console.error('Email send error:', error.message);
+    // In dev mode, still allow signup with console-logged OTP
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn(`⚠️ [DEV MODE FALLBACK] OTP for ${email}: ${otp}`);
+      return;
+    }
+    throw error;
+  }
 };
 
 const sendArrivalOtpEmail = async ({ email, otp, bookingId, serviceName }) => {
